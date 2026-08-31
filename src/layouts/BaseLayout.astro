@@ -7,7 +7,7 @@ interface Props {
   title: string;
   description?: string;
 }
-const { title, description = '马虎虎的个人博客与作品集' } = Astro.props;
+const { title, description = 'Henzhi 的个人博客与作品集' } = Astro.props;
 ---
 <!doctype html>
 <html lang="zh-CN">
@@ -15,8 +15,20 @@ const { title, description = '马虎虎的个人博客与作品集' } = Astro.pr
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
+    <script is:inline>
+      (function () {
+        try {
+          var t = localStorage.getItem('theme');
+          if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+          document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <Header />

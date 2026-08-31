@@ -1,10 +1,50 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { projects } from '../data/projects';
 ---
-<BaseLayout title="关于 · 马虎虎">
-  <h1>关于我</h1>
-  <div class="prose">
-    <p>我是马虎虎，北京化工大学计算机科学与技术专业 2027 届学生，关注 AI 应用落地与全栈开发。</p>
-    <p>这里记录我的技术博客与项目作品集。更多内容持续更新中。</p>
+<BaseLayout title="关于 · Henzhi">
+  <h1>关于 Henzhi</h1>
+  <p class="lead">
+    北京化工大学计算机科学与技术专业 2027 届。喜欢把抽象的 AI 能力做成每天能用的小工具，
+    也乐于从零搭全栈系统。
+  </p>
+
+  <h2 class="section-title">我在做什么</h2>
+  <ul class="about-list">
+    <li>面向开发者的 AI 效率工具（选词即问、法律检索 Agent 等）</li>
+    <li>法律领域 RAG / Agent 工程化：混合检索、流式输出、多路融合</li>
+    <li>公考刷题系统这类从零起步的全栈产品</li>
+  </ul>
+
+  <h2 class="section-title">技术栈</h2>
+  <div class="skill-chips">
+    <span class="chip">Python</span>
+    <span class="chip">TypeScript</span>
+    <span class="chip">Astro</span>
+    <span class="chip">LangGraph</span>
+    <span class="chip">RAG</span>
+    <span class="chip">SpringBoot</span>
+    <span class="chip">Vue 3</span>
+    <span class="chip">PostgreSQL / pgvector</span>
+    <span class="chip">Docker</span>
   </div>
+
+  <h2 class="section-title">进行中的项目</h2>
+  <div class="grid">
+    {projects.map((p) => (
+      <article class="card">
+        <h3>{p.name}</h3>
+        <div class="meta-row"><span>● {p.status}</span>{p.year && <span>{p.year}</span>}</div>
+        <p class="desc">{p.description}</p>
+        {p.link && (
+          <div class="links">
+            <a href={p.link} target="_blank" rel="noopener">代码仓库 →</a>
+          </div>
+        )}
+      </article>
+    ))}
+  </div>
+
+  <h2 class="section-title">联系</h2>
+  <p>在 GitHub 上找我：<a href="https://github.com/Henzhi" target="_blank" rel="noopener">@Henzhi</a>。更多项目持续更新中。</p>
 </BaseLayout>
