@@ -1,0 +1,20 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('posts')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf()
+);
+---
+<BaseLayout title="博客 · 马虎虎">
+  <h1>博客</h1>
+  <ul class="post-list">
+    {posts.map((post) => (
+      <li>
+        <a href={`/blog/${post.slug}`}>{post.data.title}</a>
+        <div class="date">{post.data.pubDate.toLocaleDateString('zh-CN')}</div>
+        <p style="margin:6px 0 0;color:var(--muted)">{post.data.description}</p>
+      </li>
+    ))}
+  </ul>
+</BaseLayout>

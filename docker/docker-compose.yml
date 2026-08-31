@@ -1,0 +1,10 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: blog-caddy
+    ports:
+      - "80:80"
+    volumes:
+      - /srv/blog:/srv/blog:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    restart: unless-stopped

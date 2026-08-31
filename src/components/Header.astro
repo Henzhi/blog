@@ -1,0 +1,15 @@
+---
+const nav = [
+  { href: '/', label: '首页' },
+  { href: '/blog', label: '博客' },
+  { href: '/about', label: '关于' },
+];
+---
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="/">马虎虎</a>
+    <nav class="nav">
+      {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+  </div>
+</header>
