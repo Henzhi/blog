@@ -60,30 +60,25 @@ npm run build    # 产物在 dist/
 # 建站点目录
 sudo mkdir -p /srv/blog
 
-# 写 Caddy 配置（HTTP 80）
-sudo tee /etc/caddy/Caddyfile > /dev/null <<'EOF'
-:80 {
-	root * /srv/blog
-	file_server
-	encode gzip
-}
-EOF
-
-# 起 Caddy 容器（Docker 已预装）
-docker run -d --name blog-caddy --restart unless-stopped \
-  -p 80:80 \
-  -v /srv/blog:/srv/blog:ro \
-  -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
-  caddy:2-alpine
+# 用 docker compose 起 Caddy（host 网络，直接监听 :80）
+cd docker
+docker compose up -d
 ```
+
+> ⚠️ 必须用 host 网络（`network_mode: host`），不要改用 bridge + `-p 80:80`。
+> 本机（Lighthouse）在 `docker stop/start` 之后 bridge 端口映射会丢失，外部访问会变成 502。
+> 该坑已踩过，配置见 `docker/docker-compose.yml`。
 
 之后访问 `http://82.156.238.96` 即可。
 
 ## 以后绑定域名 + 上 HTTPS
 
 1. 域名 A 记录指向 `82.156.238.96`。
-2. 防火墙加一条 443(TCP) 放行规则。
-3. 把 Caddyfile 改成：
+2. 防火墙加一条 443(TCP) 放行规则（腾讯云控制台操作）。
+3. 改用 Caddyfile 让 Caddy 自动申请证书：编辑 `docker/docker-compose.yml`，
+   把 `command` 改为 `caddy run --config /etc/caddy/Caddyfile`，
+   并新增挂载 `./Caddyfile:/etc/caddy/Caddyfile:ro`（仓库里已有 `docker/Caddyfile` 示例）。
+   Caddyfile 内容：
 
    ```
    your-domain.com {
@@ -93,8 +88,8 @@ docker run -d --name blog-caddy --restart unless-stopped \
    }
    ```
 
+4. 重新拉起：`cd docker && docker compose up -d --force-recreate`
    Caddy 会自动申请并续期 Let's Encrypt 证书，无需手动操作。
-4. 重启容器：`docker restart blog-caddy`。
 
 ## 资源占用说明
 
