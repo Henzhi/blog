@@ -75,6 +75,8 @@ docker run -d --name blog-caddy --network host --restart unless-stopped \
 
 **用 npm 的话先删掉 `package.json` 里的 `preinstall`**。那行是 `npx only-allow pnpm`，主题官方推荐 pnpm，用 npm 装依赖会被它拦下来。
 
+**构建报 `The link class does not exist` 就把 `node_modules/.vite` 删了**。这是 Tailwind 的 content 缓存坏了，把 `@layer` 里定义的自定义类当成没人用给裁掉了，于是另一处 `@apply link` 就找不到它。清 `.astro` 和 `dist` 都没用，得清 `.vite`。（Windows 下文件太多会被安全删除拦下来，用 `python -c "import shutil; shutil.rmtree('node_modules/.vite', ignore_errors=True)"` 稳一点。）
+
 还有两处为了过 CI 的类型检查动过主题源码，以后升级 Fuwari 时注意别被覆盖掉：`ArchivePanel.svelte` 里 `Post.category` 的类型放宽成了 `string | null`（content collection 给的是这个）；`LightDarkSwitch.svelte` 里补了一句宽松的 props 声明，因为 Svelte 5 的 runes 组件不声明 props 时类型是 `Record<string, never>`，Astro 传下去的 `client:only` 会被判成非法属性。
 
 ## 以后要是绑域名
