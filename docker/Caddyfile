@@ -1,5 +1,0 @@
-:80 {
-	root * /srv/blog
-	file_server
-	encode gzip
-}

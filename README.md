@@ -1,96 +1,139 @@
-# 个人博客与作品集
+# Henzhi 的个人博客与作品集
 
-基于 **Astro** 的纯静态站点，部署在腾讯云轻量应用服务器（2 核 2G）上，通过 Docker 中的 Caddy 提供 HTTP 服务。
+静态站点，用 [Astro](https://astro.build) + [Fuwari](https://github.com/saicaca/fuwari) 主题构建，部署在腾讯云轻量应用服务器（2 核 2G）上，由 Caddy 提供静态托管。
 
-## 目录结构
+- 线上地址：http://82.156.238.96
+- 源码仓库：https://github.com/Henzhi/blog
 
-- `src/pages/` 页面（首页 `index.astro`、博客 `blog/`、关于 `about.astro`）
-- `src/content/posts/` 博客文章（Markdown）
-- `src/data/projects.ts` 作品集数据
-- `src/components/` 组件（Header / Footer / ProjectCard）
-- `src/layouts/BaseLayout.astro` 页面外壳
-- `docker/` 服务器 Caddy 配置
-- `scripts/deploy.sh` 本地构建 + 上传脚本
+## 技术栈
+
+| 层 | 选型 |
+| --- | --- |
+| 框架 | Astro 5（静态输出，默认零 JS） |
+| 主题 | Fuwari |
+| 样式 | Tailwind CSS 3 |
+| 交互组件 | Svelte 5（搜索框、主题切换等） |
+| 搜索 | Pagefind（构建后生成静态索引，不需要后端） |
+| 代码高亮 | Expressive Code（Shiki） |
+| 托管 | Caddy 2（Docker，`--network host`） |
 
 ## 本地开发
 
 ```bash
-cd C:\Code\VibeCoding\blog
-npm install
-npm run dev      # 本地预览 http://localhost:4321
+npm install          # 如果用 pnpm：pnpm install
+npm run dev          # 起本地服务，默认 localhost:4321
+npm run build        # 构建到 ./dist/，并生成 pagefind 搜索索引
+npm run preview      # 本地预览构建产物
+npm run check        # 类型检查
+npm run new-post <filename>   # 新建一篇文章
 ```
 
-## 写内容
+> 主题官方推荐 pnpm。用 npm 也能跑，但 `package.json` 里的 `preinstall` 强制校验 pnpm，用 npm 时需要删掉那一行。
 
-- **新博客**：在 `src/content/posts/` 新建 `xxx.md`，头部写 frontmatter：
+## 目录结构
 
-  ```md
-  ---
-  title: 标题
-  description: 简介
-  pubDate: 2026-08-31
-  tags: ["标签"]
-  ---
-  正文用 Markdown 写。
-  ```
+```
+src/
+├── config.ts                 # ★ 站点配置集中在这里（标题、导航、头像、社交链接）
+├── content/
+│   ├── posts/                # ★ 博客文章，一个 .md 一篇
+│   └── spec/about.md         # ★ 关于页内容
+├── pages/projects.astro      # ★ 作品集页面（项目数据在文件顶部的数组里）
+├── assets/images/            # 头像等本地图片
+└── components/ layouts/      # 主题组件，一般不用改
+```
 
-- **加作品**：编辑 `src/data/projects.ts`，往 `projects` 数组里加一项。
+要改的东西基本就四处在上面标了 ★ 的位置。
 
-## 构建
+## 写文章
+
+新建 `src/content/posts/xxx.md`：
+
+```markdown
+---
+title: 文章标题
+published: 2026-09-08
+description: 列表页和 SEO 用的一句话摘要
+tags: [LangGraph, RAG]
+category: AI 工程
+draft: false
+---
+
+正文。
+```
+
+frontmatter 字段说明：
+
+| 字段 | 必填 | 说明 |
+| --- | --- | --- |
+| `title` | ✅ | 标题 |
+| `published` | ✅ | 发布日期 |
+| `description` |  | 摘要，不填会自动截取正文开头 |
+| `tags` |  | 标签数组，用于标签页和筛选 |
+| `category` |  | 分类，单值 |
+| `draft` |  | `true` 时不进构建 |
+| `image` |  | 封面图，相对当前 md 文件的路径 |
+
+Markdown 额外支持：Admonitions（`> [!NOTE]`）、GitHub 仓库卡片（`::github{repo="..."}`）、KaTeX 数学公式、带行号和折叠的代码块。
+
+## 部署到服务器
+
+站点产物是纯静态的 `dist/`，服务器上的发布目录是 `/srv/blog`。
+
+### 方式一：SSH + rsync（推荐）
+
+先配好 SSH 免密登录，然后：
 
 ```bash
-npm run build    # 产物在 dist/
+npm run build
+rsync -avz --delete ./dist/ <用户名>@82.156.238.96:/srv/blog/
 ```
 
-## 部署到服务器（本地构建 + 上传）
+### 方式二：服务器自拉取源码构建
 
-1. 第一次：在服务器上做一次准备（见下）。
-2. 之后每次更新：
-
-   ```bash
-   bash scripts/deploy.sh
-   ```
-
-   脚本会 `npm run build` 并把 `dist/` 用 rsync 上传到服务器的 `/srv/blog`。
-   上传前请把 `scripts/deploy.sh` 里的 `SERVER` 改成你的 `用户名@82.156.238.96`，并确保本机到服务器已配置 SSH（密钥或密码）。
-
-## 服务器一次性准备（SSH 登录后执行）
+服务器上装好 Node 后：
 
 ```bash
-# 建站点目录
-sudo mkdir -p /srv/blog
-
-# 用 docker compose 起 Caddy（host 网络，直接监听 :80）
-cd docker
-docker compose up -d
+cd /opt/blog && git pull && npm install && npm run build
+sudo cp -r dist/* /srv/blog/
 ```
 
-> ⚠️ 必须用 host 网络（`network_mode: host`），不要改用 bridge + `-p 80:80`。
-> 本机（Lighthouse）在 `docker stop/start` 之后 bridge 端口映射会丢失，外部访问会变成 502。
-> 该坑已踩过，配置见 `docker/docker-compose.yml`。
+> 2 核 2G 跑 `npm run build` 内存偏紧，建议提前加 2G swap。
 
-之后访问 `http://82.156.238.96` 即可。
+### 服务器上的 Caddy
 
-## 以后绑定域名 + 上 HTTPS
+```bash
+docker run -d --name blog-caddy --network host --restart unless-stopped \
+  -v /srv/blog:/srv/blog:ro \
+  caddy:2-alpine caddy file-server --root /srv/blog --listen :80
+```
 
-1. 域名 A 记录指向 `82.156.238.96`。
-2. 防火墙加一条 443(TCP) 放行规则（腾讯云控制台操作）。
-3. 改用 Caddyfile 让 Caddy 自动申请证书：编辑 `docker/docker-compose.yml`，
-   把 `command` 改为 `caddy run --config /etc/caddy/Caddyfile`，
-   并新增挂载 `./Caddyfile:/etc/caddy/Caddyfile:ro`（仓库里已有 `docker/Caddyfile` 示例）。
-   Caddyfile 内容：
+⚠️ **必须用 `--network host`**。用 bridge + `-p 80:80` 时，容器 stop 再 start 后端口映射会失效，外部访问直接 502。
+
+## 绑定域名 + HTTPS
+
+1. 域名加 A 记录指向 `82.156.238.96`；
+2. 腾讯云防火墙放行 443（TCP）；
+3. 把 `astro.config.mjs` 里的 `site` 改成 `https://你的域名`；
+4. Caddy 换成用配置文件启动：
 
    ```
    your-domain.com {
-   	root * /srv/blog
-   	file_server
-   	encode gzip
+       root * /srv/blog
+       file_server
+       encode gzip
    }
    ```
 
-4. 重新拉起：`cd docker && docker compose up -d --force-recreate`
-   Caddy 会自动申请并续期 Let's Encrypt 证书，无需手动操作。
+   ```bash
+   docker run -d --name blog-caddy --network host --restart unless-stopped \
+     -v /srv/blog:/srv/blog:ro \
+     -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
+     caddy:2-alpine
+   ```
 
-## 资源占用说明
+   Caddy 会自动申请并续期 Let's Encrypt 证书。
 
-纯静态托管，运行时几乎只消耗文件 IO 与少量内存，2 核 2G 完全够用；构建在本地完成，不占服务器算力。
+## 主题许可
+
+Fuwari 基于 MIT License。文章内容默认采用 CC BY-NC-SA 4.0（可在 `src/config.ts` 的 `licenseConfig` 里关闭）。

@@ -1,0 +1,71 @@
+---
+import MainGridLayout from "../layouts/MainGridLayout.astro";
+
+const projects = [
+	{
+		name: "LexAgent",
+		status: "M3 进行中",
+		year: "2026",
+		desc: "基于 LangGraph 的法律检索问答 Agent：流式输出 + 双路检索融合 + 自研工具协议，DeepSeek / Ollama 双后端可降级。",
+		tags: ["LangGraph", "RAG", "Agent", "PostgreSQL"],
+		repo: "https://github.com/Henzhi/LexAgent",
+	},
+	{
+		name: "Law-RAG-Agent",
+		status: "重构中",
+		year: "2026",
+		desc: "自治法律 RAG Agent：pgvector + BM25 + reranker 混合检索，内部知识库优先于网页搜索，带日/周预算熔断。",
+		tags: ["RAG", "pgvector", "LangGraph", "Tavily"],
+		repo: "https://github.com/Henzhi/Law-RAG-Agent",
+	},
+	{
+		name: "select-ask-ai",
+		status: "维护中",
+		year: "2025",
+		desc: "跨平台「选中即问」工具：浏览器 Tampermonkey 脚本 + Python 桌面客户端，覆盖 PDF / Word / Markdown / WPS 场景。",
+		tags: ["Python", "Tampermonkey", "PyInstaller"],
+		repo: "https://github.com/Henzhi/select-ask-ai",
+	},
+	{
+		name: "gk-line-test",
+		status: "从零搭建",
+		year: "2026",
+		desc: "公考行测刷题系统：SpringBoot 3.5 + Vue3 全栈，题库由多模态大模型从 PDF 解析提取。",
+		tags: ["SpringBoot", "Vue3", "MySQL"],
+		repo: "https://github.com/Henzhi/gk-line-test",
+	},
+];
+---
+
+<MainGridLayout title="作品集" description="Henzhi 的开源项目">
+    <div class="flex w-full rounded-[var(--radius-large)] overflow-hidden relative min-h-32">
+        <div class="card-base z-10 px-9 py-6 relative w-full">
+            <div class="mb-6">
+                <h1 class="text-3xl font-bold mb-2 text-90">作品集</h1>
+                <p class="text-75">在做的和做过的项目，全部开源在 GitHub。</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {projects.map((p) => (
+                    <div class="card-base p-5 flex flex-col gap-3">
+                        <div class="flex items-baseline justify-between gap-2">
+                            <h2 class="text-xl font-bold text-90">{p.name}</h2>
+                            <span class="text-sm text-50 shrink-0">{p.year}</span>
+                        </div>
+                        <div class="text-sm text-[var(--primary)]">{p.status}</div>
+                        <p class="text-75 text-sm leading-relaxed">{p.desc}</p>
+                        <div class="flex flex-wrap gap-2">
+                            {p.tags.map((t) => (
+                                <span class="text-xs px-2 py-1 rounded-md bg-[var(--btn-regular-bg)] text-75">{t}</span>
+                            ))}
+                        </div>
+                        <a href={p.repo} target="_blank" rel="noopener"
+                           class="btn-regular w-full rounded-lg py-2 text-sm mt-auto">
+                            查看源码 →
+                        </a>
+                    </div>
+                ))}
+            </div>
+        </div>
+    </div>
+</MainGridLayout>
