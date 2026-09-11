@@ -78,27 +78,54 @@ Markdown 额外支持：Admonitions（`> [!NOTE]`）、GitHub 仓库卡片（`::
 
 ## 部署到服务器
 
-站点产物是纯静态的 `dist/`，服务器上的发布目录是 `/srv/blog`。
+站点产物是纯静态的 `dist/`，服务器的发布目录是 `/srv/blog`（Caddy 以只读方式挂载）。
 
-### 方式一：SSH + rsync（推荐）
+### 一键发布（推荐）
 
-先配好 SSH 免密登录，然后：
+```bash
+bash scripts/publish.sh
+```
+
+脚本做四件事：`npm run build` → 打包 `dist/` → 上传覆盖 `/srv/blog` → 验证首页返回 200。
+
+可用环境变量覆盖默认值：
+
+| 变量 | 默认值 | 说明 |
+| --- | --- | --- |
+| `SERVER` | `tencent` | `~/.ssh/config` 里的主机别名 |
+| `REMOTE_DIR` | `/srv/blog` | 服务器上的发布目录 |
+| `SITE_URL` | `http://82.156.238.96` | 发布后用于验证的地址 |
+
+### 一次性配置：SSH 免密登录
+
+`~/.ssh/config` 里已经配好 `tencent` 别名（`root@82.156.238.96`），只需把公钥装到服务器：
+
+```bash
+cat ~/.ssh/id_ed25519.pub | ssh root@82.156.238.96 \
+  "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+```
+
+首次会要求输入 root 密码（忘了可在腾讯云控制台重置）。之后 `ssh tencent` 免密登录，`publish.sh` 也能直接跑。
+
+验证：`ssh tencent "echo ok"` 应该直接输出 `ok`，不再要密码。
+
+### 手动发布（不想跑脚本时）
 
 ```bash
 npm run build
-rsync -avz --delete ./dist/ <用户名>@82.156.238.96:/srv/blog/
+tar czf - -C dist . | ssh tencent "rm -rf /srv/blog/* && tar xzf - -C /srv/blog"
 ```
 
-### 方式二：服务器自拉取源码构建
+> ⚠️ **不要用整目录替换或 `rsync --delete` 直接换掉 `/srv/blog`**：Caddy 是只读挂载这个目录的，替换目录会让容器里的挂载点指向旧 inode，页面不会更新。必须先清空内容，再原地覆盖。
 
-服务器上装好 Node 后：
+### 备选：服务器自构建
+
+服务器装好 Node 并加 2G swap 后：
 
 ```bash
 cd /opt/blog && git pull && npm install && npm run build
-sudo cp -r dist/* /srv/blog/
+sudo rm -rf /srv/blog/* && sudo cp -r dist/* /srv/blog/
 ```
-
-> 2 核 2G 跑 `npm run build` 内存偏紧，建议提前加 2G swap。
 
 ### 服务器上的 Caddy
 
