@@ -11,6 +11,12 @@ import {
 import { onMount } from "svelte";
 import type { LIGHT_DARK_MODE } from "@/types/config.ts";
 
+// 这个组件不接收任何 props。但 Svelte 5 的 runes 组件在未声明 props 时，类型会被推断成
+// Record<string, never>，于是 Astro 传下来的 client:only 指令会触发 ts(2322)。
+// 显式声明一个宽松的 props 类型即可规避。
+let props: Record<string, unknown> = $props();
+void props;
+
 const seq: LIGHT_DARK_MODE[] = [LIGHT_MODE, DARK_MODE, AUTO_MODE];
 let mode: LIGHT_DARK_MODE = $state(AUTO_MODE);
 
