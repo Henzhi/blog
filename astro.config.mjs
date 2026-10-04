@@ -26,8 +26,10 @@ import { pluginCustomCopyButton } from "./src/plugins/expressive-code/custom-cop
 
 // https://astro.build/config
 export default defineConfig({
-	site: "http://82.156.238.96",
-	base: "/",
+	// 站点地址：部署到 GitHub Pages（https://henzhi.github.io/blog/）
+	// base 必须与仓库名一致，否则 CSS/JS 会 404
+	site: "https://henzhi.github.io",
+	base: "/blog",
 	trailingSlash: "always",
 	integrations: [
 		tailwind({

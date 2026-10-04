@@ -19,10 +19,17 @@ function stripInvalidXmlChars(str: string): string {
 export async function GET(context: APIContext) {
 	const blog = await getSortedPosts();
 
+	// context.site 只含 origin（如 https://henzhi.github.io/），不含 base。
+	// 部署在子路径（GitHub Pages 的 /blog/）时必须补上 base，否则 channel/link 会指向站点根。
+	const siteRoot = new URL(
+		import.meta.env.BASE_URL,
+		context.site ?? "https://fuwari.vercel.app",
+	);
+
 	return rss({
 		title: siteConfig.title,
 		description: siteConfig.subtitle || "No description",
-		site: context.site ?? "https://fuwari.vercel.app",
+		site: siteRoot,
 		items: blog.map((post) => {
 			const content =
 				typeof post.body === "string" ? post.body : String(post.body || "");

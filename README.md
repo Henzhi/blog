@@ -1,8 +1,8 @@
 # Henzhi 的博客
 
-线上在 http://82.156.238.96，源码在 [github.com/Henzhi/blog](https://github.com/Henzhi/blog)。
+线上在 https://henzhi.github.io/blog/，源码在 [github.com/Henzhi/blog](https://github.com/Henzhi/blog)。
 
-底子是 Astro + [Fuwari](https://github.com/saicaca/fuwari) 主题，纯静态输出；样式用 Tailwind，搜索框和主题切换那几个小组件是 Svelte 写的，搜索索引靠 Pagefind 在构建时生成，不需要后端。托管在腾讯云一台 2 核 2G 的轻量服务器上，就一个 Caddy 的 Docker 容器，没别的中间件。
+底子是 Astro + [Fuwari](https://github.com/saicaca/fuwari) 主题，纯静态输出；样式用 Tailwind，搜索框和主题切换那几个小组件是 Svelte 写的，搜索索引靠 Pagefind 在构建时生成，不需要后端。托管在 GitHub Pages 上，push 到 `main` 就自动构建发布，不用自己碰服务器。
 
 ## 平时怎么用
 
@@ -39,66 +39,53 @@ draft: false
 
 ## 发布
 
-```bash
-bash scripts/publish.sh
-```
-
-它会构建、打包、传到服务器，最后自己 curl 一下首页确认返回 200。`SERVER`、`REMOTE_DIR`、`SITE_URL` 三个环境变量能覆盖默认值，一般用不上。
-
-前提是本机能免密 ssh 到服务器。`~/.ssh/config` 里早就配了 `tencent` 这个别名（root@82.156.238.96），但服务器上一直没放公钥，所以先装一次：
+**正常流程就是 push**，没有别的动作：
 
 ```bash
-cat ~/.ssh/id_ed25519.pub | ssh root@82.156.238.96 \
-  "mkdir -p ~/.ssh && chmod 700 ~/.ssh && cat >> ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys"
+git add -A && git commit -m "post: 新文章" && git push
 ```
 
-会问一次 root 密码，之后就免密了（忘了可以在腾讯云控制台重置）。
+`.github/workflows/deploy.yml` 会跑 `npm ci` → `npm run build`（含 Pagefind 索引）→ 传到 GitHub Pages。一两分钟看 https://henzhi.github.io/blog/ 就更新了。也可以在 Actions 页面手动点 `workflow_dispatch` 触发一次。
 
-不想跑脚本就手动来：
+### 本地预览
+
+GitHub Pages 部署在 `/blog/` 子路径下，所以本地验证也必须带着这个前缀，否则测不出 CSS/JS 404 这类问题：
 
 ```bash
-npm run build
-tar czf - -C dist . | ssh tencent "rm -rf /srv/blog/* && tar xzf - -C /srv/blog"
+npm run build && bash scripts/local-server.sh start   # http://localhost:4321/blog/
 ```
+
+### 站点地址配置
+
+`astro.config.mjs` 里这两行是一对，改一个必须改另一个：
+
+```js
+site: "https://henzhi.github.io",
+base: "/blog",       // 必须和仓库名一致
+```
+
+`base` 写错的表现是全站 CSS/JS 404、页面变成裸 HTML。换自定义域名时，把 `site` 换成域名、`base` 改成 `"/"` 即可。
+
+### 两个只有部署时才暴露的坑
+
+**RSS 的 `<channel><link>` 会漏掉 base**。`context.site` 只返回 origin（`https://henzhi.github.io/`），不含 base。`src/pages/rss.xml.ts` 里已经用 `new URL(import.meta.env.BASE_URL, context.site)` 补上了，改这块时留意别改回去。
+
+**用 `file://` 直接打开 `dist/index.html` 看不出问题**。根路径 `/blog/_astro/...` 在 file 协议下会解析成 `C:\blog\...`，CSS 全丢，页面是裸的 HTML——这是假象不是 bug。要验证就得起个 HTTP 服务，且目录结构得是 `根/blog/dist内容`。
 
 ## 几个坑，别再踩一遍
-
-**别整目录替换 `/srv/blog`**。Caddy 是只读挂载这个目录的，你要是删完再把一个新目录 `mv` 过去，容器里那个挂载点还指着旧 inode，页面纹丝不动，很容易怀疑人生。清空内容再原地覆盖才对（上面的命令就是这么写的），`rsync --delete` 同理。
-
-**Caddy 得用 `--network host`**。一开始用 `-p 80:80` 的 bridge 模式，容器 stop 再 start 之后端口映射就丢了，外面访问直接 502。换成 host 网络后 Caddy 直接绑宿主机 80，没这毛病：
-
-```bash
-docker run -d --name blog-caddy --network host --restart unless-stopped \
-  -v /srv/blog:/srv/blog:ro \
-  caddy:2-alpine caddy file-server --root /srv/blog --listen :80
-```
-
 **用 npm 的话先删掉 `package.json` 里的 `preinstall`**。那行是 `npx only-allow pnpm`，主题官方推荐 pnpm，用 npm 装依赖会被它拦下来。
 
 **构建报 `The link class does not exist` 就把 `node_modules/.vite` 删了**。这是 Tailwind 的 content 缓存坏了，把 `@layer` 里定义的自定义类当成没人用给裁掉了，于是另一处 `@apply link` 就找不到它。清 `.astro` 和 `dist` 都没用，得清 `.vite`。（Windows 下文件太多会被安全删除拦下来，用 `python -c "import shutil; shutil.rmtree('node_modules/.vite', ignore_errors=True)"` 稳一点。）
 
 还有两处为了过 CI 的类型检查动过主题源码，以后升级 Fuwari 时注意别被覆盖掉：`ArchivePanel.svelte` 里 `Post.category` 的类型放宽成了 `string | null`（content collection 给的是这个）；`LightDarkSwitch.svelte` 里补了一句宽松的 props 声明，因为 Svelte 5 的 runes 组件不声明 props 时类型是 `Record<string, never>`，Astro 传下去的 `client:only` 会被判成非法属性。
 
-## 以后要是绑域名
+**别用无头浏览器截图判断页面是否正常**。Fuwari 的 `.onload-animation` 初始是 `opacity: 0`，靠 300ms 的 CSS 动画淡入。截图跑太早会拍到一片空白，看起来像渲染坏了。加 `--virtual-time-budget=6000` 等动画播完再截。
 
-域名加一条 A 记录指向 `82.156.238.96`，防火墙放行 443，把 `astro.config.mjs` 里的 `site` 换成正式域名，然后 Caddy 改成读配置文件启动：
+## 以后要是绑自定义域名
 
-```
-your-domain.com {
-    root * /srv/blog
-    file_server
-    encode gzip
-}
-```
+仓库 Settings → Pages → Custom domain 填域名，域名那边加 CNAME 指向 `henzhi.github.io`，然后把 `astro.config.mjs` 的 `site` 改成域名、`base` 改成 `"/"`。HTTPS 证书 GitHub 自动签，勾上 Enforce HTTPS 就行。
 
-```bash
-docker run -d --name blog-caddy --network host --restart unless-stopped \
-  -v /srv/blog:/srv/blog:ro \
-  -v /etc/caddy/Caddyfile:/etc/caddy/Caddyfile:ro \
-  caddy:2-alpine
-```
-
-证书 Caddy 自己申请和续期，不用管。
+（原来是部署在腾讯云轻量服务器上的，Caddy 容器跑 `--network host` + 只读挂载 `/srv/blog`。服务器到期后换成了 GitHub Pages，那套配置和 `scripts/publish.sh` 已经用不上了。）
 
 ## 许可
 
