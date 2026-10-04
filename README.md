@@ -47,6 +47,23 @@ git add -A && git commit -m "post: 新文章" && git push
 
 `.github/workflows/deploy.yml` 会跑 `npm ci` → `npm run build`（含 Pagefind 索引）→ 传到 GitHub Pages。一两分钟看 https://henzhi.github.io/blog/ 就更新了。也可以在 Actions 页面手动点 `workflow_dispatch` 触发一次。
 
+### 首次部署要做的事
+
+代码 push 上去还不够，Pages 得先在仓库里启用一次（这是 GitHub 的硬性要求，没有纯 API 的绕过路径）：
+
+1. 仓库是**公开**的（Settings → 最下面 Danger Zone → Change visibility）。私有仓发布 Pages 需要 Pro。
+2. **Settings → Pages → Build and deployment → Source 选 `GitHub Actions`**（不是 "Deploy from a branch"）。
+3. 去 Actions 页手动跑一次 `Deploy to GitHub Pages`，或者在设置里点 Save 后会自动重跑。
+
+**没做第 2 步会怎样**：workflow 会在 `Configure Pages` 步骤失败，报
+
+```
+HttpError: Not Found - https://docs.github.com/rest/pages/pages#get-a-pages-site
+Get Pages site failed. Please verify that the repository has Pages enabled...
+```
+
+这个报错挺误导人的——它看起来像配置写错了，其实前面 `Install dependencies` 和 `Build site` 都是成功的，代码一点问题没有，就是 Pages 还没开。
+
 ### 本地预览
 
 GitHub Pages 部署在 `/blog/` 子路径下，所以本地验证也必须带着这个前缀，否则测不出 CSS/JS 404 这类问题：
