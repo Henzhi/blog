@@ -1,0 +1,27 @@
+---
+import { getSortedPosts } from "../../utils/content-utils";
+import { getPostUrlBySlug } from "../../utils/url-utils";
+import WidgetLayout from "./WidgetLayout.astro";
+
+interface Props {
+	class?: string;
+	style?: string;
+}
+const className = Astro.props.class;
+const style = Astro.props.style;
+
+const posts = (await getSortedPosts()).slice(0, 5);
+---
+
+<WidgetLayout name="最近更新" id="recent-posts" class={className} style={style}>
+    <ul class="flex flex-col gap-2.5">
+        {posts.map((p) => (
+            <li>
+                <a href={getPostUrlBySlug(p.slug)}
+                   class="block text-[0.8125rem] leading-snug text-75 transition-colors hover:text-[var(--primary)] line-clamp-2">
+                    {p.data.title}
+                </a>
+            </li>
+        ))}
+    </ul>
+</WidgetLayout>

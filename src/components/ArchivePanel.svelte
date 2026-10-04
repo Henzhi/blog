@@ -1,8 +1,6 @@
 <script lang="ts">
 import { onMount } from "svelte";
 
-import I18nKey from "../i18n/i18nKey";
-import { i18n } from "../i18n/translation";
 import { getPostUrlBySlug } from "../utils/url-utils";
 
 // 这两个值实际由组件自己从 URL 查询参数解析（见下方 params），给默认值让它们成为可选 props，
@@ -26,28 +24,25 @@ interface Post {
 	};
 }
 
-interface Group {
-	year: number;
-	posts: Post[];
-}
+let filteredPosts: Post[] = sortedPosts;
 
-let groups: Group[] = [];
+$: activeFilters = [
+	...tags.map((t) => `#${t}`),
+	...categories,
+	...(uncategorized ? ["未分类"] : []),
+];
 
-function formatDate(date: Date) {
+function formatYearMonth(date: Date) {
+	const year = date.getFullYear();
 	const month = (date.getMonth() + 1).toString().padStart(2, "0");
-	const day = date.getDate().toString().padStart(2, "0");
-	return `${month}-${day}`;
-}
-
-function formatTag(tagList: string[]) {
-	return tagList.map((t) => `#${t}`).join(" ");
+	return `${year} · ${month}`;
 }
 
 onMount(async () => {
-	let filteredPosts: Post[] = sortedPosts;
+	let result: Post[] = sortedPosts;
 
 	if (tags.length > 0) {
-		filteredPosts = filteredPosts.filter(
+		result = result.filter(
 			(post) =>
 				Array.isArray(post.data.tags) &&
 				post.data.tags.some((tag) => tags.includes(tag)),
@@ -55,99 +50,51 @@ onMount(async () => {
 	}
 
 	if (categories.length > 0) {
-		filteredPosts = filteredPosts.filter(
+		result = result.filter(
 			(post) => post.data.category && categories.includes(post.data.category),
 		);
 	}
 
 	if (uncategorized) {
-		filteredPosts = filteredPosts.filter((post) => !post.data.category);
+		result = result.filter((post) => !post.data.category);
 	}
 
-	const grouped = filteredPosts.reduce(
-		(acc, post) => {
-			const year = post.data.published.getFullYear();
-			if (!acc[year]) {
-				acc[year] = [];
-			}
-			acc[year].push(post);
-			return acc;
-		},
-		{} as Record<number, Post[]>,
-	);
-
-	const groupedPostsArray = Object.keys(grouped).map((yearStr) => ({
-		year: Number.parseInt(yearStr, 10),
-		posts: grouped[Number.parseInt(yearStr, 10)],
-	}));
-
-	groupedPostsArray.sort((a, b) => b.year - a.year);
-
-	groups = groupedPostsArray;
+	filteredPosts = result;
 });
 </script>
 
-<div class="card-base px-8 py-6">
-    {#each groups as group}
-        <div>
-            <div class="flex flex-row w-full items-center h-[3.75rem]">
-                <div class="w-[15%] md:w-[10%] transition text-2xl font-bold text-right text-75">
-                    {group.year}
-                </div>
-                <div class="w-[15%] md:w-[10%]">
-                    <div
-                            class="h-3 w-3 bg-none rounded-full outline outline-[var(--primary)] mx-auto
-                  -outline-offset-[2px] z-50 outline-3"
-                    ></div>
-                </div>
-                <div class="w-[70%] md:w-[80%] transition text-left text-50">
-                    {group.posts.length} {i18n(group.posts.length === 1 ? I18nKey.postCount : I18nKey.postsCount)}
-                </div>
-            </div>
-
-            {#each group.posts as post}
-                <a
-                        href={getPostUrlBySlug(post.slug)}
-                        aria-label={post.data.title}
-                        class="group btn-plain !block h-10 w-full rounded-lg hover:text-[initial]"
-                >
-                    <div class="flex flex-row justify-start items-center h-full">
-                        <!-- date -->
-                        <div class="w-[15%] md:w-[10%] transition text-sm text-right text-50">
-                            {formatDate(post.data.published)}
-                        </div>
-
-                        <!-- dot and line -->
-                        <div class="w-[15%] md:w-[10%] relative dash-line h-full flex items-center">
-                            <div
-                                    class="transition-all mx-auto w-1 h-1 rounded group-hover:h-5
-                       bg-[oklch(0.5_0.05_var(--hue))] group-hover:bg-[var(--primary)]
-                       outline outline-4 z-50
-                       outline-[var(--card-bg)]
-                       group-hover:outline-[var(--btn-plain-bg-hover)]
-                       group-active:outline-[var(--btn-plain-bg-active)]"
-                            ></div>
-                        </div>
-
-                        <!-- post title -->
-                        <div
-                                class="w-[70%] md:max-w-[65%] md:w-[65%] text-left font-bold
-                     group-hover:translate-x-1 transition-all group-hover:text-[var(--primary)]
-                     text-75 pr-8 whitespace-nowrap overflow-ellipsis overflow-hidden"
-                        >
-                            {post.data.title}
-                        </div>
-
-                        <!-- tag list -->
-                        <div
-                                class="hidden md:block md:w-[15%] text-left text-sm transition
-                     whitespace-nowrap overflow-ellipsis overflow-hidden text-30"
-                        >
-                            {formatTag(post.data.tags)}
-                        </div>
-                    </div>
-                </a>
+<!-- stephango 式年份密排：等宽「年 · 月」前缀 + 标题，一行一条 -->
+<div>
+    {#if activeFilters.length > 0}
+        <div class="mb-6 flex flex-wrap items-center gap-2 text-[0.8125rem] text-50">
+            <span>筛选：</span>
+            {#each activeFilters as filter}
+                <span class="inline-flex items-center h-6 px-2 rounded-md border border-[var(--border-subtle)] text-75">{filter}</span>
             {/each}
+            <a href="./" class="ml-1 transition-colors hover:text-[var(--primary)]">清除 ×</a>
         </div>
+    {/if}
+
+    {#each filteredPosts as post (post.slug)}
+        <a
+                href={getPostUrlBySlug(post.slug)}
+                aria-label={post.data.title}
+                class="group flex items-baseline gap-4 py-2.5 -mx-2 px-2 rounded-lg transition-colors hover:bg-[var(--btn-plain-bg-hover)]"
+                style="border-bottom: 0.5px solid var(--border-subtle)"
+        >
+            <span class="shrink-0 w-[5.5rem] font-mono text-[0.8125rem] tabular-nums text-30">
+                {formatYearMonth(post.data.published)}
+            </span>
+            <span class="min-w-0 truncate text-[0.9375rem] text-black/90 dark:text-white/90 transition-colors group-hover:text-[var(--primary)]">
+                {post.data.title}
+            </span>
+            <span class="ml-auto hidden md:block shrink-0 max-w-[12rem] truncate text-[0.8125rem] text-30">
+                {post.data.tags.map((t) => t.trim()).join(" · ")}
+            </span>
+        </a>
     {/each}
+
+    {#if filteredPosts.length === 0}
+        <div class="py-12 text-center text-[0.9375rem] text-30">该筛选条件下暂无文章</div>
+    {/if}
 </div>

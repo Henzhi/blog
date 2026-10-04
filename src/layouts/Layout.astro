@@ -1,7 +1,16 @@
 ---
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
+import "@fontsource-variable/inter";
+
+// 样式入口：Fuwari 主题重做时这组样式文件被复制进来却没接上 import，
+// 导致「文档/源码改了样式但线上没生效」。这里统一接回，顺序不能乱：
+// variables.styl 定义设计令牌 → main.css 定义组件类 → 其余为细化样式。
+import "../styles/variables.styl";
+import "../styles/main.css";
+import "../styles/markdown.css";
+import "../styles/markdown-extend.styl";
+import "../styles/transition.css";
+import "../styles/scrollbar.css";
+import "../styles/expressive-code.css";
 
 import ConfigCarrier from "@components/ConfigCarrier.astro";
 import { profileConfig, siteConfig } from "@/config";
@@ -110,7 +119,7 @@ const bannerOffset =
 		))}
 
 		<!-- Set the theme before the page is rendered to avoid a flash -->
-		<script is:inline define:vars={{DEFAULT_THEME, LIGHT_MODE, DARK_MODE, AUTO_MODE, BANNER_HEIGHT_EXTEND, PAGE_WIDTH, configHue}}>
+		<script is:inline define:vars={{DEFAULT_THEME, LIGHT_MODE, DARK_MODE, AUTO_MODE, BANNER_HEIGHT_EXTEND, PAGE_WIDTH, configHue, hueFixed: siteConfig.themeColor.fixed}}>
 			// Load the theme from local storage
 			const theme = localStorage.getItem('theme') || DEFAULT_THEME;
 			switch (theme) {
@@ -128,8 +137,11 @@ const bannerOffset =
 					}
 			}
 
-			// Load the hue from local storage
-			const hue = localStorage.getItem('hue') || configHue;
+			// 主题色锁定时忽略 localStorage 里的旧 hue，清掉避免残留
+			if (hueFixed) {
+				localStorage.removeItem('hue');
+			}
+			const hue = hueFixed ? configHue : (localStorage.getItem('hue') || configHue);
 			document.documentElement.style.setProperty('--hue', hue);
 
 			// calculate the --banner-height-extend, which needs to be a multiple of 4 to avoid blurry text
@@ -283,6 +295,8 @@ function loadTheme() {
 }
 
 function loadHue() {
+	// 主题色固定时不读访客的本地 hue，保持设计令牌唯一
+	if (siteConfig.themeColor.fixed) return
 	setHue(getHue())
 }
 

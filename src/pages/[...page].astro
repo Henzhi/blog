@@ -1,10 +1,14 @@
 ---
 import type { GetStaticPaths } from "astro";
+import { Icon } from "astro-icon/components";
 import Pagination from "../components/control/Pagination.astro";
+import Hero from "../components/Hero.astro";
 import PostPage from "../components/PostPage.astro";
 import { PAGE_SIZE } from "../constants/constants";
+import { projects, toneColor } from "../data/projects";
 import MainGridLayout from "../layouts/MainGridLayout.astro";
 import { getSortedPosts } from "../utils/content-utils";
+import { url } from "../utils/url-utils";
 
 export const getStaticPaths = (async ({ paginate }) => {
 	const allBlogPosts = await getSortedPosts();
@@ -15,9 +19,53 @@ export const getStaticPaths = (async ({ paginate }) => {
 const { page } = Astro.props;
 
 const len = page.data.length;
+const isFirstPage = page.currentPage === 1;
 ---
 
 <MainGridLayout>
+    {isFirstPage && (
+        <Hero></Hero>
+
+        <!-- 精选作品：横向密排，名称 / 状态 / 一句话 / 技术栈纯文本 -->
+        <section class="mb-[var(--space-section)] onload-animation" style="animation-delay: 100ms">
+            <div class="section-label mb-3">精选作品</div>
+            <div>
+                {projects.map((p) => (
+                    <a href={p.repo} target="_blank" rel="noopener"
+                       class="project-row group flex flex-wrap items-baseline gap-x-3 gap-y-1 py-3 -mx-2 px-2 rounded-lg transition-colors hover:bg-[var(--btn-plain-bg-hover)]"
+                       style={`border-bottom: 0.5px solid var(--border-subtle)`}
+                    >
+                        <span class="font-medium text-black/90 dark:text-white/90 transition-colors group-hover:text-[var(--primary)]">
+                            {p.name}
+                        </span>
+                        <span class="text-[0.8125rem]" style={`color: ${toneColor[p.tone]}`}>{p.status}</span>
+                        <span class="hidden sm:inline text-[0.8125rem] text-30 ml-auto shrink-0">
+                            {p.stack.join(" · ")}
+                        </span>
+                        <span class="basis-full text-[0.9375rem] leading-relaxed text-50 line-clamp-1">
+                            {p.desc}
+                        </span>
+                    </a>
+                ))}
+            </div>
+        </section>
+
+        <div class="section-label mb-1 onload-animation" id="latest" style="animation-delay: 150ms">最新文章</div>
+    )}
+
     <PostPage page={page}></PostPage>
-    <Pagination class="mx-auto onload-animation" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
+
+    {isFirstPage && (
+        <a href={url('/archive/')}
+           class="inline-flex items-center gap-1 mt-2 text-[0.9375rem] text-50 transition-colors hover:text-[var(--primary)] onload-animation"
+           style={`animation-delay: calc(var(--content-delay) + ${len * 50 + 150}ms)`}
+        >
+            全部文章
+            <Icon name="material-symbols:arrow-right-alt-rounded" class="text-lg" />
+        </a>
+    )}
+
+    {page.lastPage > 1 && (
+        <Pagination class="mx-auto onload-animation mt-6" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
+    )}
 </MainGridLayout>

@@ -1,17 +1,14 @@
 ---
-
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
 import { getTagList } from "../../utils/content-utils";
-import { getTagUrl } from "../../utils/url-utils";
-import ButtonTag from "../control/ButtonTag.astro";
+import { getTagUrl, url } from "../../utils/url-utils";
 import WidgetLayout from "./WidgetLayout.astro";
 
 const tags = await getTagList();
 
-const COLLAPSED_HEIGHT = "7.5rem";
-
-const isCollapsed = tags.length >= 20;
+// 只展示热度最高的 8 个，剩下的进存档页筛选
+const topTags = [...tags].sort((a, b) => b.count - a.count).slice(0, 8);
 
 interface Props {
 	class?: string;
@@ -20,12 +17,21 @@ interface Props {
 const className = Astro.props.class;
 const style = Astro.props.style;
 ---
-<WidgetLayout name={i18n(I18nKey.tags)} id="tags" isCollapsed={isCollapsed} collapsedHeight={COLLAPSED_HEIGHT} class={className} style={style}>
+
+<WidgetLayout name={i18n(I18nKey.tags)} id="tags" class={className} style={style}>
     <div class="flex gap-2 flex-wrap">
-        {tags.map(t => (
-            <ButtonTag href={getTagUrl(t.name)} label={`View all posts with the ${t.name.trim()} tag`}>
+        {topTags.map(t => (
+            <a href={getTagUrl(t.name)} aria-label={`View all posts with the ${t.name.trim()} tag`}
+               class="inline-flex items-center h-7 px-2.5 rounded-md text-[0.8125rem] text-75
+                      border border-[var(--border-subtle)] bg-transparent
+                      transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]">
                 {t.name.trim()}
-            </ButtonTag>
+            </a>
         ))}
     </div>
+    {tags.length > topTags.length && (
+        <a href={url('/archive/')} class="inline-block mt-3 text-[0.8125rem] text-50 transition-colors hover:text-[var(--primary)]">
+            全部标签 →
+        </a>
+    )}
 </WidgetLayout>

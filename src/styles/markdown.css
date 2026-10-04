@@ -1,6 +1,28 @@
+/* .prose 也是单类选择器，用 .custom-md.prose 双类压住 typography 插件的默认字号 */
+.custom-md.prose {
+    /* 中文长文阅读体：18px / 1.75，字重只留 400/500/600 */
+    font-size: var(--text-body);
+    line-height: 1.75;
+}
+
 .custom-md {
+
     h1 {
-        @apply text-3xl;
+        font-size: var(--text-h1);
+        line-height: 1.25;
+        font-weight: 500;
+    }
+
+    h2 {
+        font-size: var(--text-h2);
+        line-height: 1.35;
+        font-weight: 500;
+    }
+
+    h3 {
+        font-size: var(--text-h3);
+        line-height: 1.4;
+        font-weight: 500;
     }
 
     h1, h2, h3, h4, h5, h6 {
@@ -20,7 +42,7 @@
     }
 
     a:not(.no-styling) {
-        @apply relative bg-none link font-medium text-[var(--primary)]
+        @apply relative bg-none font-medium text-[var(--primary)]
         underline decoration-[var(--link-underline)] decoration-1 decoration-dashed underline-offset-4;
         box-decoration-break: clone;
         -webkit-box-decoration-break: clone;
@@ -100,9 +122,14 @@
     blockquote {
         @apply not-italic border-transparent relative;
         font-weight: inherit;
+        background: transparent;
 
+        /* 左侧 2px 细线 + 无背景，替换原来的粗圆角条 */
         &:before {
-            @apply content-[''] absolute -left-1 block transition bg-[var(--btn-regular-bg)] h-full w-1 rounded-full;
+            @apply content-[''] absolute -left-1 block transition h-full;
+            width: 2px;
+            border-radius: 0;
+            background: var(--border-subtle);
         }
 
         /* Remove the double quotes from default styles */
@@ -110,6 +137,30 @@
             @apply content-none;
         }
 
+    }
+
+    /* 表格：去外框，只留行间细分隔线 */
+    table {
+        @apply w-full;
+        border-collapse: collapse;
+        font-size: var(--text-small);
+
+        thead {
+            border-bottom: 1px solid var(--border-subtle);
+            th {
+                @apply font-medium text-left;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+        tbody tr {
+            border-bottom: 0.5px solid var(--border-subtle);
+        }
+        tbody tr:last-child {
+            border-bottom: none;
+        }
+        td {
+            padding: 0.5rem 0.75rem;
+        }
     }
 
     .katex-display-container {

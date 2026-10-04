@@ -1,0 +1,74 @@
+---
+import { profileConfig } from "../config";
+import { url } from "../utils/url-utils";
+
+// Default 档：三句话以内，3 秒说清「我是谁、在做什么、判断力在哪」
+const shortBio =
+	"我在做法律 RAG 与 AI Agent —— 关心的是它跑不跑得起来、答得准不准、钱花不花得起。";
+// Long 档：补充在做的事与工程偏好，给愿意深读的人
+const longBio =
+	"目前在做智能体全栈开发实习。主战场是 LexAgent —— 基于 LangGraph 的法律检索问答 Agent；同时在维护 select-ask-ai（跨平台「选中即问」工具）和 gk-line-test（公考行测刷题系统）。工程上偏好根因治理、测试与 lint 进 CI 门禁，愿意用一点响应延迟换回答准确。";
+---
+
+<hero-section class="block pt-10 pb-12 md:pt-14 md:pb-16">
+    <div class="flex items-center gap-4 md:gap-5">
+        <!-- 纯排版 monogram：accent 圆底 + 首字母，替代动漫头像 -->
+        <div class="shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-full bg-[var(--primary)] flex items-center justify-center select-none">
+            <span class="text-white text-2xl md:text-[1.75rem] font-semibold tracking-tight -translate-y-px">H</span>
+        </div>
+        <div class="min-w-0">
+            <h1 class="text-[length:var(--text-hero)] leading-[1.1] font-semibold text-black/90 dark:text-white/90 tracking-tight">
+                {profileConfig.name}
+            </h1>
+            <div class="mt-1 text-[0.9375rem] text-50">
+                计算机科学与技术 · 北京化工大学 2027 届
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-6 max-w-[42rem]">
+        <p class="bio-short text-[length:var(--text-body)] leading-[1.75] text-black/80 dark:text-white/80">
+            {shortBio}
+        </p>
+        <p class="bio-long hidden text-[length:var(--text-body)] leading-[1.75] text-black/80 dark:text-white/80">
+            {shortBio}{longBio}
+        </p>
+        <button class="bio-toggle mt-2 text-[0.8125rem] text-30 transition-colors hover:text-[var(--primary)]">
+            <span class="bio-toggle-label">展开完整简介 ↓</span>
+        </button>
+    </div>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+        <a href={url('/projects/')}
+           class="btn-regular rounded-lg h-10 px-5 text-[0.9375rem] font-medium active:scale-95">
+            看作品集 →
+        </a>
+        <a href={url('/archive/')}
+           class="btn-plain rounded-lg h-10 px-5 text-[0.9375rem] font-medium border border-[var(--border-subtle)] active:scale-95">
+            读文章 →
+        </a>
+    </div>
+</hero-section>
+
+<script>
+    class HeroSection extends HTMLElement {
+        constructor() {
+            super();
+            const btn = this.querySelector('.bio-toggle');
+            const label = this.querySelector('.bio-toggle-label');
+            const short = this.querySelector('.bio-short');
+            const long = this.querySelector('.bio-long');
+            let expanded = false;
+            btn?.addEventListener('click', () => {
+                expanded = !expanded;
+                short?.classList.toggle('hidden', expanded);
+                long?.classList.toggle('hidden', !expanded);
+                if (label) label.textContent = expanded ? '收起 ↑' : '展开完整简介 ↓';
+            });
+        }
+    }
+
+    if (!customElements.get('hero-section')) {
+        customElements.define('hero-section', HeroSection);
+    }
+</script>

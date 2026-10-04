@@ -11,6 +11,8 @@ const postsCollection = defineCollection({
 		tags: z.array(z.string()).optional().default([]),
 		category: z.string().optional().nullable().default(""),
 		lang: z.string().optional().default(""),
+		// 首页精选标记：true 的文章优先展示在首页「最新文章」之前
+		featured: z.boolean().optional().default(false),
 
 		/* For internal use */
 		prevTitle: z.string().default(""),

@@ -6,7 +6,26 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Roboto", "sans-serif", ...defaultTheme.fontFamily.sans],
+        // Inter 负责拉丁/数字，中文落系统黑体（PingFang / 雅黑），等宽用 JetBrains Mono
+        sans: [
+          "Inter Variable",
+          "Inter",
+          "-apple-system",
+          "Segoe UI",
+          "PingFang SC",
+          "Hiragino Sans GB",
+          "Microsoft YaHei",
+          "Noto Sans SC",
+          ...defaultTheme.fontFamily.sans,
+        ],
+        mono: [
+          "JetBrains Mono Variable",
+          "ui-monospace",
+          "SFMono-Regular",
+          "Menlo",
+          "Consolas",
+          "monospace",
+        ],
       },
     },
   },

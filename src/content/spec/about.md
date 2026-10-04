@@ -28,4 +28,4 @@
 
 - GitHub：[github.com/Henzhi](https://github.com/Henzhi)
 
-> 这个站点用 [Astro](https://astro.build) 搭配 [Fuwari](https://github.com/saicaca/fuwari) 主题搭建，跑在一台腾讯云轻量服务器上。
+> 这个站点用 [Astro](https://astro.build) 搭配 [Fuwari](https://github.com/saicaca/fuwari) 主题搭建，部署在 GitHub Pages。

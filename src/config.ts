@@ -9,15 +9,15 @@ import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
 	title: "Henzhi",
-	subtitle: "AI Agent · 全栈 · 把模型能力落到能跑的工程上",
+	subtitle: "法律 RAG 与 AI Agent，关心跑不跑得起来、答得准不准、钱花不花得起",
 	lang: "zh_CN", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
-		hue: 220, // Default hue for the theme color, from 0 to 360. e.g. red: 0, teal: 200, cyan: 250, pink: 345
-		fixed: false, // Hide the theme color picker for visitors
+		hue: 250, // 强调色固定为蓝（hue 250），仅用于链接与导航当前态
+		fixed: true, // 锁定主题色，不向访客提供换色入口
 	},
 	banner: {
 		enable: false,
-		src: "assets/images/demo-banner.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+		src: "", // 不启用 banner；头像与 banner 素材均已移除
 		position: "center", // Equivalent to object-position, only supports 'top', 'center', 'bottom'. 'center' by default
 		credit: {
 			enable: false, // Display the credit text of the banner image
@@ -52,7 +52,7 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "assets/images/avatar.png", // Relative to the /src directory. Relative to the /public directory if it starts with '/'
+	avatar: "", // 头像已改为 Hero 里的纯文字 monogram（accent 圆底 + H）
 	name: "Henzhi",
 	bio: "计算机科学与技术 · 北京化工大学 2027 届。在做 AI Agent、法律检索与全栈工具——喜欢把想法真正跑起来，而不是停在 demo。",
 	links: [

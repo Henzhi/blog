@@ -93,6 +93,14 @@
         @apply text-black/25 dark:text-white/25
     }
 
+    /* 节标题：小号加宽字距标签（joshwcomeau 式分节） */
+    .section-label {
+        font-size: var(--text-label);
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        @apply text-black/50 dark:text-white/50
+    }
+
     .meta-icon {
         @apply w-8 h-8 transition rounded-md flex items-center justify-center bg-[var(--btn-regular-bg)]
         text-[var(--btn-content)] mr-2
