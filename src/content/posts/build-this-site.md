@@ -1,8 +1,8 @@
 ---
 title: 这个站点是怎么搭起来的（以及踩的几个坑）
 published: 2026-09-08
-description: Astro + Fuwari 主题跑在 2 核 2G 的轻量服务器上，记录 Caddy 网络模式、装包缓存锁、无 SSH 上传这几个真实的坑。
-tags: [Astro, 部署, Docker, 服务器]
+description: Astro + Fuwari 静态站点，从自建服务器迁到 GitHub Pages，记录子路径部署、无头截图假象、配色缓存这几个真实的坑。
+tags: [Astro, 部署, GitHub Pages, 工程]
 category: 工程
 draft: false
 ---
@@ -11,33 +11,65 @@ draft: false
 
 ## 选型
 
-服务器是 2 核 2G，跑不了什么重东西，所以技术选型上只有一个原则：**构建要轻，运行要静**。
-
 - **Astro** — 静态输出，默认零 JS，构建完就是一堆 HTML/CSS
 - **Fuwari** — Astro 生态里的博客主题，自带搜索、标签、归档、RSS、代码高亮、暗色模式
-- **Caddy** — 一个二进制搞定静态托管，以后上 HTTPS 只要改一行配置
+- **Pagefind** — 构建后扫描 HTML 生成搜索索引，纯静态，不需要任何服务端
 
-## 坑一：Caddy 用 bridge 映射，容器重启后就失联
+一开始是跑在一台 2 核 2G 的轻量服务器上，用 Caddy 做静态托管。后来那台服务器到期没续费，就换成了 GitHub Pages —— 免费、有公网地址、不用自己维护机器，代价是部署在 `/<repo>/` 子路径下，多了一些坑。
 
-最初是这么起的：
+## 坑一：子路径部署，`base` 配错会全站裸奔
 
-```bash
-docker run -d -p 80:80 -v /srv/blog:/srv/blog:ro caddy:2-alpine ...
+GitHub Pages 的项目站地址是 `https://<user>.github.io/<repo>/`，所以 Astro 配置里必须同时写 `site` 和 `base`：
+
+```js
+site: "https://henzhi.github.io",
+base: "/blog",       // 必须和仓库名一致
 ```
 
-能访问。但 `docker stop` 再 `docker start` 之后，外部访问直接 **502**。查下来是 bridge 模式的端口映射在重启后没生效：`docker inspect` 里 `PortBindings` 配置还在，但 `docker port` 返回空，docker-proxy 没起来。
+`base` 写错的症状很有辨识度：页面能打开，但**样式全丢，变成裸 HTML**。因为资源引用是根路径的 `/_astro/xxx.css`，在子路径下会请求到 `https://henzhi.github.io/_astro/xxx.css`，404。
 
-改成 host 网络，Caddy 直接绑宿主机的 80 端口，绕开 docker-proxy：
+改完一定要验一遍资源前缀：
 
 ```bash
-docker run -d --name blog-caddy --network host --restart unless-stopped \
-  -v /srv/blog:/srv/blog:ro \
-  caddy:2-alpine caddy file-server --root /srv/blog --listen :80
+grep -o '/blog/_astro/[^"]*' dist/index.html | head
 ```
 
-重启之后不再出问题。
+**还有一个只有手写页面才会踩的坑**：Astro 官方的 sitemap 集成会自动带上 `base`，但自己写的 `rss.xml.ts` 不会 —— `context.site` 只返回 origin，不含 `base`。结果是 RSS 的 `<channel><link>` 指向了站点根目录。得手动补：
 
-## 坑二：装包卡在缓存锁上
+```ts
+const siteRoot = new URL(import.meta.env.BASE_URL, context.site);
+```
+
+## 坑二：无头截图会把「动画没播完」看成「页面空白」
+
+用 `chrome --headless --screenshot` 验证页面时，首页文章列表**一片空白**，侧边栏却正常。差点以为是渲染 bug。
+
+实际上是 Fuwari 的入场动画在作祟：
+
+```css
+.onload-animation {
+    opacity: 0;
+    animation: 300ms fade-in-up;
+    animation-fill-mode: forwards;
+}
+```
+
+初始 `opacity: 0`，靠 CSS 动画淡入。截图拍得太早，动画还没开始，自然全黑。
+
+解法是加 `--virtual-time-budget`，让 Chrome 推进虚拟时钟等动画播完：
+
+```bash
+chrome --headless=new --virtual-time-budget=6000 \
+  --screenshot=out.png https://henzhi.github.io/blog/
+```
+
+## 坑三：`file://` 打开构建产物验证是无效的
+
+想省事直接拿浏览器打开 `dist/index.html` 看效果 —— 结果是一片裸页面，同样会误判成构建坏了。
+
+原因是根路径 `/blog/_astro/...` 在 `file://` 协议下会被解析成 `C:\blog\_astro\...`，文件根本不存在。**验证静态站点必须起 HTTP 服务，而且目录结构得是 `根/blog/构建产物`**，才能模拟出 Pages 的子路径环境。
+
+## 坑四：装包卡在缓存锁上
 
 `npm install` 跑了十分钟没动静，看 `node_modules` 是空的。逐步排查：
 
@@ -45,39 +77,42 @@ docker run -d --name blog-caddy --network host --restart unless-stopped \
 npm install --cache /tmp/npmcache2 --registry https://registry.npmmirror.com
 ```
 
-换一个独立的缓存目录立刻就装上了。原因是有另一个 npm 进程占着默认缓存目录的锁，新进程拿不到写权限就直接卡住——而且**不报错**，只是静默等待。
+换一个独立的缓存目录立刻就装上了。原因是有另一个 npm 进程占着默认缓存目录的锁，新进程拿不到写权限就直接卡住 —— 而且**不报错**，只是静默等待。
 
 判断方法：`node_modules` 长时间为空 + 没有网络错误，八成是锁，不是网。
 
-## 坑三：没有 SSH 通道时怎么把产物传上去
+还有一个隐蔽的：Windows 下强杀 npm 进程会让包残缺。`taskkill` 打断了解压阶段，留下半截 `node_modules`，npm 不会自动修复，构建必然失败。判断「卡死还是慢」的办法是连续看 `ls node_modules/*/package.json | wc -l` 有没有在增长。
 
-沙箱环境连不上服务器的 SSH，常规的 `rsync` 走不通。临时方案是在服务器上起一个一次性接收端：
+## 坑五：Tailwind 缓存坏了会报莫名其妙的错
 
-```python
-# 服务器上临时运行
-import http.server
-class H(http.server.BaseHTTPRequestHandler):
-    def do_POST(self):
-        n = int(self.headers.get("Content-Length", 0))
-        open("/tmp/blog.tar.gz", "wb").write(self.rfile.read(n))
-        self.send_response(200); self.end_headers()
-http.server.ThreadingHTTPServer(("0.0.0.0", 80), H).serve_forever()
-```
+构建报 `The link class does not exist`，看着像 CSS 写错了。实际是 Vite/Tailwind 的 content 缓存与当前依赖树不一致 —— 它把 `@layer` 里定义的自定义类当成「没人用」裁掉了，于是另一处 `@apply` 就找不到。
 
-本地打包上传：
+清 `.astro` 和 `dist` 都没用，**必须删 `node_modules/.vite`**。重装依赖之后尤其容易遇到。
+
+## 部署流程
+
+现在整个发布就是一次 push：
 
 ```bash
-tar czf dist.tar.gz -C dist .
-cat dist.tar.gz | curl -s -X POST --data-binary @- http://<ip>/
+git add -A && git commit -m "post: 新文章" && git push
 ```
 
-能用，但不体面——不可复现、不能回滚。正经做法还是配好 SSH key 走 rsync，或者让服务器直接 `git pull` 后自己构建。这个后面会换掉。
+GitHub Actions 会跑 `npm ci` → `npm run build` → 发布到 Pages。
+
+这里踩过一个坑：`configure-pages` 在仓库没启用 Pages 时会报
+
+```
+HttpError: Not Found
+Get Pages site failed. Please verify that the repository has Pages enabled...
+```
+
+这个报错很误导 —— 看着像配置写错了，其实前一步 `Build site` 是成功的，纯粹是仓库设置里 Pages 还没开。**这一步只能手动点，没有纯 API 的路径**（那个 `enablement: true` 参数要求 `GITHUB_TOKEN` 之外、带 `repo` scope 的 token，CI 里拿不到）。
 
 ## 现在的状态
 
-- 主题换成 Fuwari，配置集中在 `src/config.ts` 一个文件里
+- 主题 Fuwari，配置集中在 `src/config.ts`
 - 内容用 Content Collections 管理，写文章就是往 `src/content/posts/` 丢 Markdown
-- 搜索由 pagefind 在构建后生成索引，不需要服务端
-- 部署目录 `/srv/blog`，Caddy 以 host 网络常驻
+- 搜索由 Pagefind 在构建后生成索引，不需要服务端
+- 托管在 GitHub Pages，push 即发布
 
-接下来要补的是：域名 + HTTPS、正规化部署流程、以及把内容写厚。
+接下来要补的是：自定义域名 + HTTPS、把内容写厚。
