@@ -5,20 +5,23 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
-# 允许 GITHUB_TOKEN 推送到 Pages
+# GITHUB_TOKEN 需要这些权限才能发布到 Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 同一时间只跑一个部署；不取消进行中的发布（避免线上半成品）
+# 同一时间只跑一个部署；不取消进行中的发布，避免线上出现半成品
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -29,8 +32,8 @@ jobs:
           node-version: 22
           cache: npm
 
-      # 项目里没有 packageManager 字段，且 .npmrc 开着
-      # manage-package-manager-versions，直接 npm ci 最稳
+      # package.json 里没有 packageManager 字段，且 .npmrc 开着
+      # manage-package-manager-versions，直接用 npm ci 最稳
       - name: Install dependencies
         run: npm ci
 
@@ -39,7 +42,11 @@ jobs:
       - name: Build site
         run: npm run build
 
-      - name: Setup Pages
+      # 读取 Pages 元数据（base_path 等），并在未启用时给出可读的错误。
+      # 注意：configure-pages 的 enablement 参数不能用，它要求 GITHUB_TOKEN
+      # 之外的 token（带 repo scope），CI 里拿不到。Pages 必须在
+      # Settings → Pages 里手动启用一次（Source 选 GitHub Actions）。
+      - name: Configure Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
@@ -47,13 +54,6 @@ jobs:
         with:
           path: ./dist
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
