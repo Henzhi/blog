@@ -29,6 +29,19 @@ src/content/posts/<主题>/   发布阶段:参与构建,生成页面
 **⚠️ 所以已经发布的文章不要移动**——改路径等于改 URL,旧链接会 404。
 只对**新文章**使用子目录。`lexagent-architecture-tutorial.md` 就是历史原因留在平铺层的。
 
+## ⚠️ 文件名不要用下划线开头
+
+Astro 的 content collection **会忽略 `_` 开头的文件**(下划线约定为私有/非内容文件)。
+实测:在 `posts/lexagent/` 下放 `_draft-test.md`,即使 `draft: false`,构建照样跳过它,
+`Indexed N pages` 的数字不涨、`dist/` 下也不生成产物。
+
+**这个坑的危险之处在于它和 `draft: true` 的表现完全一样**——两者都不进构建,
+光看构建输出区分不出来,很容易把「文件名违例」误判成「草稿状态没改」,
+然后反复去改 frontmatter 也解决不了。
+
+判断方法:产物没生成时,**先 `ls` 看文件名有没有下划线前缀**,再去怀疑 frontmatter。
+想标记草稿请用 `draft: true`,不要用文件名前缀。
+
 ## 从底稿到发布
 
 ```bash
