@@ -22,10 +22,16 @@
 
 ```bash
 npm install
-npm run dev        # localhost:4321
+npm run dev        # 本地预览 http://localhost:4321/blog/
 ```
 
-写文章就是在 `src/content/posts/` 里新建一个 `.md`。头部固定这几个字段：
+写文章就是在 `src/content/posts/` 里新建一个 `.md`，也可以让脚本生成骨架。slug 会成为文件名和 URL（用英文小写加连字符），中文标题走第二个参数：
+
+```bash
+npm run new-post -- lexagent-budget-breaker "LexAgent 的预算熔断是怎么做的"
+```
+
+头部固定这几个字段：
 
 ```markdown
 ---
@@ -41,7 +47,9 @@ featured: false
 正文。
 ```
 
-`title` 和 `published` 是必须的，其余可省。`draft: true` 的文章不进构建，写一半先放着挺方便。`featured: true` 是给首页精选预留的标记，**目前首页还没接这个字段的读取逻辑**（首页现在直接取最新几篇），想用的话在 `src/pages/[...page].astro` 里按它筛。
+`title` 和 `published` 是必须的，其余可省。schema（`src/content/config.ts`）里另外还有 `image`（封面图）和 `lang` 两个可选字段，目前没用上，需要时自己加。`draft: true` 的文章不进构建，写一半先放着挺方便。
+
+**注意 slug 就是 URL**，所以文件名用英文小写加连字符（`lexagent-budget-breaker`），中文标题写在 `title` 里。文件名用中文的话链接会变成一长串 URL 编码。`featured: true` 是给首页精选预留的标记，**目前首页还没接这个字段的读取逻辑**（首页现在直接取最新几篇），想用的话在 `src/pages/[...page].astro` 里按它筛。
 
 **`category` 只允许三个值**：`生活记录` / `学习笔记` / `教程笔记`，留空则算「未分类」。取值来源是 `src/data/categories.ts`，`src/content/config.ts` 里挂了 `refine` 校验——写别的词构建会直接报错，不会悄悄多出一个游离分类。要加分类就改那个文件，`/categories/` 索引页和侧栏都会跟着变。
 
@@ -170,7 +178,9 @@ CODEBUDDY_SAFE_DELETE_ENABLED=0 npm run build
 
 ## 遗留
 
-`scripts/publish.sh` 和 `scripts/local-server.ps1` 是早期部署在腾讯云轻量服务器（Caddy 容器跑 `--network host` + 只读挂载 `/srv/blog`）时写的，服务器到期后换成了 GitHub Pages，这俩已经用不上了，留着只是懒得删。现在本地起服务用 `scripts/serve-local.sh`。
+`scripts/local-server.ps1` + `scripts/serve-hidden.cmd` 是早期在 Windows 下起本地静态服务的方案（用 `CREATE_NO_WINDOW` 拉一个无黑窗的 python `http.server` 伺服 `dist/`），功能与 `scripts/serve-local.sh` 完全重叠。现在一律用 `serve-local.sh`。`serve-hidden.cmd` 里还硬编码了 `C:\Tools\miniconda3\pythonw.exe`，换机器就失效。
+
+原先还有个 `scripts/publish.sh`，是部署到腾讯云轻量服务器（Caddy 容器跑 `--network host` + 只读挂载 `/srv/blog`）用的，服务器停用后已于 2026-10-05 删除。**部署现在只有 push 一条路径**，别再找别的入口；万一在别的地方见到这个脚本的引用，那是过期的。
 
 ## 许可
 
