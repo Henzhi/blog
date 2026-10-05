@@ -81,9 +81,16 @@
         }
     }
 
+    /* 这里刻意不写 @apply btn-regular-dark。
+       Tailwind 的 @apply 只能解析「同一次处理里已经出现过」的自定义类，而 main.css 与
+       markdown.css 有可能被拆进不同的 CSS chunk——一旦拆开，构建就会随机报
+       “The `btn-regular-dark` class does not exist”。所以把那条规则就地展开，切断跨文件依赖。
+       改动 main.css 的 .btn-regular-dark 时记得同步这里。 */
     .copy-btn {
         all: initial;
-        @apply btn-regular-dark opacity-0 shadow-lg shadow-black/50 absolute active:scale-90 h-8 w-8 top-3 right-3 text-sm rounded-lg transition-all ease-in-out z-20 cursor-pointer;
+        @apply flex items-center justify-center opacity-0 shadow-lg shadow-black/50 absolute active:scale-90 h-8 w-8 top-3 right-3 text-sm rounded-lg transition-all ease-in-out z-20 cursor-pointer
+        bg-[oklch(0.45_0.01_var(--hue))] hover:bg-[oklch(0.50_0.01_var(--hue))] active:bg-[oklch(0.55_0.01_var(--hue))]
+        dark:bg-[oklch(0.30_0.02_var(--hue))] dark:hover:bg-[oklch(0.35_0.03_var(--hue))] dark:active:bg-[oklch(0.40_0.03_var(--hue))];
     }
     .frame:hover .copy-btn {
         opacity: 1;
