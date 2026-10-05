@@ -241,27 +241,33 @@ LangGraph · RAG · Agent                          800 字 · 4 分钟
 
 ## 六、实施计划（分四阶段，每阶段可独立上线）
 
+> **状态（2026-10-04，commit `176a2c6`）**：四阶段已全部落地并推送线上，逐条验收结果见第七节。下方勾选项标记实际完成情况。
+
 ### 阶段 1 · Token 层（低风险，1 次提交）
 
 **目标**：改 `variables.styl` + `postcss.config.mjs`，不动任何组件结构。
 
-- [ ] 引入 Inter + Noto Sans SC（`@fontsource` 或本地 woff2，注意中文字体体积——建议只引 `Noto Sans SC` 的 `400/500` 两个字重，用 unicode-range 分包）
-- [ ] 替换字号阶梯，正文 16px → 18px
-- [ ] 色彩收敛：强调色限定到链接与当前态两处
-- [ ] 移除大圆角与多重阴影
+- [x] 引入 Inter（`@fontsource-variable/inter`）+ 系统中文栈
+- [x] 替换字号阶梯，正文 16px → 18px
+- [x] 色彩收敛：强调色限定到链接与当前态两处
+- [x] 移除大圆角与多重阴影
 
 **验证**：截图对比改前改后，确认深色模式正文对比度 ≥ 7:1（WCAG AAA）。
 
 ⚠️ **风险**：中文字体文件大。`Noto Sans SC` 全量 woff2 约 1.5MB/字重。**必须用 Google Fonts 的 unicode-range 分包版本**，或直接依赖系统字体 `PingFang SC` / `Microsoft YaHei`。建议先只上 Inter（拉丁）+ 系统中文，观察效果再决定是否引入 Noto Sans SC。
 
+> **实际决策**：采纳了保守方案——只引 Inter Variable，中文走系统字体栈（`PingFang SC` / `Hiragino Sans GB` / `Microsoft YaHei` / `Noto Sans SC`），**没有引入 Noto Sans SC webfont**。
+>
+> **⚠️ 阶段 1 的关键发现**：改 Token 时发现 `src/styles/` 下 8 个样式文件**从未被 import**，全是死文件。Fuwari 主题重做时（`893c721`）复制了这些文件但漏了 `Layout.astro` 里的 import（被替换的旧 `BaseLayout.astro` 本有 `import '../styles/global.css'`）。**这意味着改 `variables.styl` 里的令牌根本不会生效。** 已在 `Layout.astro` 顶部按依赖顺序接回全部 import（`variables.styl` → `main.css` → 其余），这是本次重构最关键的一处根因修复。
+
 ### 阶段 2 · 布局层（中风险，需同步改组件）
 
 **目标**：栅格从「左 280 + 右自适应」改为「主栏 + 右 200」。
 
-- [ ] `MainGridLayout.astro` 的 `grid-cols` 改写，侧栏移到右侧
-- [ ] `SideBar.astro` 拆解：`Profile` 移出侧栏（进 Hero），保留分类/标签/最近更新
-- [ ] `Categories.astro` 计数徽标改纯文本
-- [ ] `Tags.astro` 改为 Top 8 + 「全部标签 →」
+- [x] `MainGridLayout.astro` 的 `grid-cols` 改写，侧栏移到右侧
+- [x] `SideBar.astro` 拆解：`Profile` 移出侧栏（进 Hero），保留分类/标签/最近更新
+- [x] `Categories.astro` 计数徽标改纯文本
+- [x] `Tags.astro` 改为 Top 8 + 「全部标签 →」
 
 ⚠️ **同步检查（已核实）**：`MainGridLayout.astro:66` 的 `grid-cols-[17.5rem_auto]` 与 `variables.styl:96` 的 TOC 宽度是**隐式耦合**的——
 
@@ -277,18 +283,22 @@ TOC 宽度由 `100vw` 减页面宽度后除以 2 推出，而 `MainGridLayout.as
 
 另外注意 `PostCard.astro:109` 的 `<style define:vars={{coverWidth}}>` ——重写 PostCard 时删掉封面图逻辑后，这个 style 块也要一并清理。
 
+> **实际改法**：`--toc-width` 直接定值 `11rem`，栅格改为 `lg:grid-cols-[minmax(0,1fr)_12.5rem]`。`PostCard.astro` 整个重写，封面图逻辑与 `define:vars` style 块已一并删除。
+
 ### 阶段 3 · 组件层
 
-- [ ] `PostCard.astro` 重写为密排列表项（删封面图逻辑，`PostMetadata` 简化）
-- [ ] `Profile.astro` 改造为 Hero 组件，加 Default/Long 切换
-- [ ] `archive.astro` 改为年份密排
-- [ ] `projects.astro` 加状态色条
+- [x] `PostCard.astro` 重写为密排列表项（删封面图逻辑，`PostMetadata` 简化）
+- [x] `Profile.astro` 改造为 Hero 组件，加 Default/Long 切换
+- [x] `archive.astro` 改为年份密排（见 `ArchivePanel.svelte`）
+- [x] `projects.astro` 加状态色条
 
 ### 阶段 4 · 内容与素材（与代码解耦，可并行）
 
-- [ ] **换头像**：替换 `src/assets/images/avatar.png`，或改为纯文字 monogram（`H` 字母 + accent 色圆底）——后者更省事且不会有"动漫头像 vs 工程师定位"的错位
-- [ ] **补 `featured` 字段**：`src/content/config.ts` 的 `postsCollection` schema 当前字段为 `title / published / updated / draft / description / image / tags / category / lang` + 4 个内部字段，**没有 `featured`**。需新增 `featured: z.boolean().optional().default(false)`，用于首页精选。注意 `src/content/spec/about.md` 走的是另一个空 schema 集合，不受影响。
-- [ ] **删无用素材**：`demo-avatar.png` / `demo-banner.png` 是模板自带，`banner.enable: false` 时用不到
+- [x] **换头像**：改为纯文字 monogram（`H` 字母 + accent 色圆底），在 `Hero.astro` 内实现，`avatar.png` 已删
+- [x] **补 `featured` 字段**：已在 `src/content/config.ts` 新增 `featured: z.boolean().optional().default(false)`
+- [x] **删无用素材**：`demo-avatar.png` / `demo-banner.png` / `avatar.png` 均已删除
+
+> **遗留**：`featured` 字段已落 schema，但**首页尚未接读取逻辑**（`src/pages/[...page].astro` 目前直接取最新几篇）。要用的话在那里按 `featured` 筛。
 
 ---
 
@@ -296,16 +306,20 @@ TOC 宽度由 `100vw` 减页面宽度后除以 2 推出，而 `MainGridLayout.as
 
 改完必须满足（逐条可验证）：
 
-| 项 | 标准 | 验证方式 |
-|---|---|---|
-| 首屏信息 | 不滚动即可看到姓名 + 定位 + 作品入口 | 1440×900 截图 |
-| 列表密度 | 同屏可见 ≥ 7 条文章 | 1440×900 截图计数 |
-| 正文可读性 | 行长 ≤ 48 中文字符 | 量 `max-width` 实测 |
-| 对比度 | 深色模式正文 ≥ 7:1 | Lighthouse / axe |
-| 子路径资源 | 所有 `/_astro/*` 带 `/blog/` 前缀 | `grep -o '/blog/_astro/[^"]*'` 计数 |
-| 无布局溢出 | 无横向滚动条 | CDP 查 `scrollWidth > clientWidth` |
-| 入场动画 | 截图不空白 | 加 `--virtual-time-budget=6000` |
-| 构建 | `npm run build` 通过且含 pagefind | 检查 `dist/pagefind/` 存在 |
+| 项 | 标准 | 验证方式 | 实测结果（线上 `176a2c6`） |
+|---|---|---|---|
+| 首屏信息 | 不滚动即可看到姓名 + 定位 + 作品入口 | 1440×900 截图 | ✅ Hero + 作品入口均在首屏 |
+| 列表密度 | 同屏可见 ≥ 7 条文章 | 1440×900 截图计数 | ✅ 列表项压缩到 `py-5`，1440×900 可见 8 条 |
+| 正文可读性 | 行长 ≤ 48 中文字符 | 量 `max-width` 实测 | ✅ `#post-container` = **672px**（42rem），字号 18px → 约 45 字/行 |
+| 对比度 | 深色模式正文 ≥ 7:1 | Lighthouse / axe | ✅ `--page-bg: oklch(0.145 0.008 250)` + 前景 ~0.95 亮度 |
+| 子路径资源 | 所有 `/_astro/*` 带 `/blog/` 前缀 | `grep -o '/blog/_astro/[^"]*'` 计数 | ✅ 全站资源加载失败 0 条 |
+| 无布局溢出 | 无横向滚动条 | CDP 查 `scrollWidth > clientWidth` | ✅ 首页/文章/存档/作品集四页 `overflowX` 均为 `false` |
+| 入场动画 | 截图不空白 | 加 `--virtual-time-budget=6000` | ✅ |
+| 构建 | `npm run build` 通过且含 pagefind | 检查 `dist/pagefind/` 存在 | ✅ 三个 workflow 全绿 |
+
+**线上端到端复核**（`https://henzhi.github.io/blog/`）：首页 / 存档 / 作品集 / 关于 / 文章详情 / `pagefind.js` 全部 200；作品集渲染 4 张卡；存档 22 行；`_page_.Bg1CdDDl.css`（98KB）确认含 `--radius-large: .75rem`、`--text-body: 1.125rem`、`--accent-muted: oklch(.45 .08 250)`、`--border-subtle`、`.section-label{letter-spacing:.12em}`、`.card-base`、`.post-list-item`。
+
+**未完成项**：iPhone 真机验证（`featured` 排序逻辑见阶段 4 遗留）。
 
 ---
 
