@@ -36,17 +36,17 @@
 ### 01 架构全链路 ✅ 已发布
 
 - **底稿**:`01-architecture-overview.md`
-- **成品**:`src/content/posts/lexagent-architecture-tutorial.md`(平铺层)
-- **URL**:https://henzhi.github.io/blog/posts/lexagent-architecture-tutorial/
-- ⚠️ 这篇在平铺层是**历史原因**——发布时还没有子目录约定。它后续发布的文章
-  一律走 `src/content/posts/lexagent/`,URL 会带一层 `lexagent/`。
+- **成品**:`src/content/posts/lexagent/01-architecture-overview.md`
+- **URL**:https://henzhi.github.io/blog/posts/lexagent/01-architecture-overview/
+- ⚠️ 2026-10-05 从平铺层 `posts/lexagent-architecture-tutorial.md` 迁移至此
+  (文件名与 URL 同步变更,当时无外链引用)。**今后不要再搬已上线的文章。**
 - 五层结构 → 三张编译图 → 工具层 → 双后端降级 → 预算熔断 → 检索 → 部署 → 收口
 - 含 5 个真实教训:reducer 被绕过致 400、公开入口被绕过致重试与降级静默失效、
   预算 TOCTOU、纯按分截断致网络线索被挤空、`Param` 类被 LangChain 静默丢弃
 
 ### 02 检索层深挖 ⬜ 待写
 
-- **成品路径**:`src/content/posts/lexagent/02-retrieval.md`(子目录首篇)
+- **成品路径**:`src/content/posts/lexagent/02-retrieval.md`
 - **URL 预告**:`/blog/posts/lexagent/02-retrieval/`
 
 候选内容(需先核代码再定稿):

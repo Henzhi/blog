@@ -26,8 +26,10 @@ src/content/posts/<主题>/   发布阶段:参与构建,生成页面
 | `posts/xxx.md` | `/blog/posts/xxx/` |
 | `posts/lexagent/xxx.md` | `/blog/posts/lexagent/xxx/` |
 
-**⚠️ 所以已经发布的文章不要移动**——改路径等于改 URL,旧链接会 404。
-只对**新文章**使用子目录。`lexagent-architecture-tutorial.md` 就是历史原因留在平铺层的。
+**⚠️ 所以已经发布的文章不要随意移动**——改路径等于改 URL,旧链接会 404。
+2026-10-05 做过一次**有意的迁移**:把 `lexagent-architecture-tutorial.md` 搬进
+`posts/lexagent/01-architecture-overview.md`(当时无外链引用、无站内引用,影响可控)。
+之后发布的新文一律直接放子目录,**不要再搬已经上线的文章**。
 
 ## ⚠️ 文件名不要用下划线开头
 
