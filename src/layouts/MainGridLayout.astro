@@ -45,7 +45,9 @@ const mainPanelTop = siteConfig.banner.enable
 
 <!-- Navbar -->
 <slot slot="head" name="head"></slot>
-<div id="top-row" class="z-50 pointer-events-none relative transition-all duration-700 max-w-[var(--page-width)] px-0 md:px-4 mx-auto" class:list={[""]}>
+<!-- 这里不再额外加 px-4：Navbar 自己已经有 px-4，两层叠加会让桌面端 logo 比正文多缩进 16px。
+     gutter 只在 Navbar 内部定义一次，与 #main-grid 的 px-4 对齐。 -->
+<div id="top-row" class="z-50 pointer-events-none relative transition-all duration-700 max-w-[var(--page-width)] px-0 mx-auto" class:list={[""]}>
     <div id="navbar-wrapper" class="pointer-events-auto sticky top-0 transition-all">
         <Navbar></Navbar>
     </div>
@@ -63,8 +65,11 @@ const mainPanelTop = siteConfig.banner.enable
 <div class="absolute w-full z-30 pointer-events-none" style={`top: ${mainPanelTop}`}>
     <!-- The pointer-events-none here prevent blocking the click event of the TOC -->
     <div class="relative max-w-[var(--page-width)] mx-auto pointer-events-auto">
+        <!-- 横向 gutter 必须所有断点都有：列表项（PostCard / ArchivePanel / 分类页 / 上下篇）用的是
+             `-mx-2 px-2`，靠这 16px 向两侧出血做 hover 背景。移动端之前是 px-0，负边距直接溢出到视口外，
+             再被 #swup-container 的 overflow-hidden 裁掉——表现就是内容贴边、右侧日期像被切了。 -->
         <div id="main-grid" class="transition duration-700 w-full left-0 right-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_12.5rem]
-    mx-auto gap-12 px-0 md:px-4"
+    mx-auto gap-12 px-4"
         >
             <!-- Banner image credit -->
             {hasBannerCredit && <a href={siteConfig.banner.credit.url} id="banner-credit" target="_blank" rel="noopener" aria-label="Visit image source"
