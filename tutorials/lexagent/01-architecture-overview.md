@@ -2,7 +2,7 @@
 title: LexAgent 架构全链路：一个法律 RAG Agent 是怎么从零长出来的
 published: 2026-10-05
 description: 从分层设计、七节点编译图、工具层抽象，到双后端降级、预算熔断和容器化部署——把 LexAgent 的每一个架构决策摊开讲，包括被推翻的那些。
-tags: [架构, LangGraph, RAG, Agent, Python, 部署]
+tags: [架构, LangGraph, RAG, Agent, 部署]
 category: 教程笔记
 draft: false
 featured: true
@@ -82,7 +82,7 @@ intent → memory_retrieve → ┌─→ agent ─┐
 1. **中断恢复困难**——用户中途打断、或者某一步超时，整个状态就丢了；
 2. **流式输出要自己拼装**——和工具调用交错时容易乱序，前端渲染经常跳字。
 
-换成编译图之后这两件事有了着落，但**注意别想当然**：一开始的设想是"配了 checkpointer，中断恢复就免费了"，这个想法后来被推翻了。
+换成编译图之后这两件事有了着落，但**注意别想当然**：一开始的设想是"配了 checkpointer，中断恢复就免费了"，这个想法后来被推翻了（见本篇第三节）。
 
 三张图**至今都没有接 checkpointer**，都是裸的 `builder.compile()`。重连能力走的是另一条路——Redis 事件日志 + seq 游标重放，因为 checkpointer 保存的是**图状态**，解决不了"已经流式吐出去的文本怎么补给重连的用户"。这两个概念很容易混为一谈，我后面单独写一篇讲。
 
