@@ -12,10 +12,10 @@ const longBio =
 
 <hero-section class="block pt-10 pb-12 md:pt-14 md:pb-16">
     <div class="flex items-center gap-4 md:gap-5">
-        <!-- 纯排版 monogram：accent 圆底 + 首字母，替代动漫头像 -->
-        <div class="shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-full bg-[var(--primary)] flex items-center justify-center select-none">
-            <span class="text-white text-2xl md:text-[1.75rem] font-semibold tracking-tight -translate-y-px">H</span>
-        </div>
+        <!-- GitHub 头像（外链，跟随 GitHub 资料自动更新） -->
+        <img src={profileConfig.avatar} alt={`${profileConfig.name} 的 GitHub 头像`}
+             width="64" height="64" loading="eager" decoding="async"
+             class="shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-full object-cover select-none" />
         <div class="min-w-0">
             <h1 class="text-[length:var(--text-hero)] leading-[1.1] font-semibold text-black/90 dark:text-white/90 tracking-tight">
                 {profileConfig.name}

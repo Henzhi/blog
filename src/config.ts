@@ -52,7 +52,7 @@ export const navBarConfig: NavBarConfig = {
 };
 
 export const profileConfig: ProfileConfig = {
-	avatar: "", // 头像已改为 Hero 里的纯文字 monogram（accent 圆底 + H）
+	avatar: "https://github.com/Henzhi.png?size=128", // GitHub 头像外链，Hero 里渲染
 	name: "Henzhi",
 	bio: "计算机科学与技术 · 北京化工大学 2027 届。在做 AI Agent、法律检索与全栈工具——喜欢把想法真正跑起来，而不是停在 demo。",
 	links: [
