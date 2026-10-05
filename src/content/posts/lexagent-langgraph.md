@@ -3,7 +3,7 @@ title: 用 LangGraph 搭法律 RAG Agent：为什么我放弃了 LangChain 的�
 published: 2026-08-22
 description: 记录 LexAgent 从手写 ReAct 循环到编译图流式的演进，以及自研 @tool 装饰器替代 bind_tools 的取舍。
 tags: [LangGraph, RAG, Agent, Python]
-category: AI 工程
+category: 学习笔记
 draft: false
 ---
 

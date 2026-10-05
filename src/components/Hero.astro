@@ -2,12 +2,12 @@
 import { profileConfig } from "../config";
 import { url } from "../utils/url-utils";
 
-// Default 档：三句话以内，3 秒说清「我是谁、在做什么、判断力在哪」
+// Default 档：三句话以内，说清「这儿写什么」
 const shortBio =
-	"我在做法律 RAG 与 AI Agent —— 关心的是它跑不跑得起来、答得准不准、钱花不花得起。";
-// Long 档：补充在做的事与工程偏好，给愿意深读的人
+	"写点日常生活，整理学习笔记，也把折腾过的东西写成能照着做的教程。";
+// Long 档：补充写东西的态度，给愿意深读的人
 const longBio =
-	"目前在做智能体全栈开发实习。主战场是 LexAgent —— 基于 LangGraph 的法律检索问答 Agent；同时在维护 select-ask-ai（跨平台「选中即问」工具）和 gk-line-test（公考行测刷题系统）。工程上偏好根因治理、测试与 lint 进 CI 门禁，愿意用一点响应延迟换回答准确。";
+	"这里不做选题规划，也不追热点——想清楚了就写，写完就算是给自己存了一份档。技术上的折腾、读过的东西、日常里那些值得记一笔的事，都放在这儿。";
 ---
 
 <hero-section class="block pt-10 pb-12 md:pt-14 md:pb-16">
@@ -21,7 +21,7 @@ const longBio =
                 {profileConfig.name}
             </h1>
             <div class="mt-1 text-[0.9375rem] text-50">
-                计算机科学与技术 · 北京化工大学 2027 届
+                生活记录 · 学习笔记 · 教程笔记
             </div>
         </div>
     </div>
@@ -39,9 +39,9 @@ const longBio =
     </div>
 
     <div class="mt-8 flex flex-wrap gap-3">
-        <a href={url('/projects/')}
+        <a href={url('/categories/')}
            class="btn-regular rounded-lg h-10 px-5 text-[0.9375rem] font-medium active:scale-95">
-            看作品集 →
+            按分类浏览 →
         </a>
         <a href={url('/archive/')}
            class="btn-plain rounded-lg h-10 px-5 text-[0.9375rem] font-medium border border-[var(--border-subtle)] active:scale-95">

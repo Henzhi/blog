@@ -91,7 +91,7 @@ function Show-Status {
 function Test-Routes {
     Write-Host ''
     Write-Host '健康检查：'
-    $routes = @('/', '/about/', '/archive/', '/projects/', '/posts/', '/rss.xml', '/pagefind/pagefind.js')
+    $routes = @('/', '/about/', '/archive/', '/categories/', '/posts/', '/rss.xml', '/pagefind/pagefind.js')
     $ok = 0
     foreach ($r in $routes) {
         $url = "http://localhost:$Port$r"

@@ -13,8 +13,9 @@ const className = Astro.props.class;
 ---
 <aside id="sidebar" class:list={[className, "w-full lg:w-[12.5rem]"]}>
     <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-10 top-4 sticky">
-        <RecentPosts class="onload-animation" style="animation-delay: 150ms"></RecentPosts>
-        <Categories class="onload-animation" style="animation-delay: 200ms"></Categories>
+        <!-- 分类放最前：这个站就是按三个方向组织的，访客第一眼该看到它 -->
+        <Categories class="onload-animation" style="animation-delay: 150ms"></Categories>
+        <RecentPosts class="onload-animation" style="animation-delay: 200ms"></RecentPosts>
         <Tag class="onload-animation" style="animation-delay: 250ms"></Tag>
     </div>
 </aside>

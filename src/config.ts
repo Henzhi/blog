@@ -8,8 +8,8 @@ import type {
 import { LinkPreset } from "./types/config";
 
 export const siteConfig: SiteConfig = {
-	title: "Henzhi",
-	subtitle: "法律 RAG 与 AI Agent，关心跑不跑得起来、答得准不准、钱花不花得起",
+	title: "Henzhi 的博客",
+	subtitle: "生活记录、学习笔记与教程笔记",
 	lang: "zh_CN", // Language code, e.g. 'en', 'zh_CN', 'ja', etc.
 	themeColor: {
 		hue: 250, // 强调色固定为蓝（hue 250），仅用于链接与导航当前态
@@ -37,15 +37,15 @@ export const siteConfig: SiteConfig = {
 export const navBarConfig: NavBarConfig = {
 	links: [
 		LinkPreset.Home,
-		LinkPreset.Archive,
 		{
-			name: "作品集",
-			url: "/projects/", // Internal links should not include the base path, as it is automatically added
+			name: "分类",
+			url: "/categories/", // Internal links should not include the base path, as it is automatically added
 		},
+		LinkPreset.Archive,
 		LinkPreset.About,
 		{
 			name: "GitHub",
-			url: "https://github.com/Henzhi", // Internal links should not include the base path, as it is automatically added
+			url: "https://github.com/Henzhi",
 			external: true, // Show an external link icon and will open in a new tab
 		},
 	],
@@ -54,7 +54,7 @@ export const navBarConfig: NavBarConfig = {
 export const profileConfig: ProfileConfig = {
 	avatar: "https://github.com/Henzhi.png?size=128", // GitHub 头像外链，Hero 里渲染
 	name: "Henzhi",
-	bio: "计算机科学与技术 · 北京化工大学 2027 届。在做 AI Agent、法律检索与全栈工具——喜欢把想法真正跑起来，而不是停在 demo。",
+	bio: "个人记录型博客：写日常生活，整理学习笔记，也把折腾过的东西写成能照着做的教程。",
 	links: [
 		{
 			name: "GitHub",

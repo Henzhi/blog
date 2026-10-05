@@ -1,31 +1,27 @@
-# 关于我
+# 关于
 
-我是 **Henzhi**，北京化工大学计算机科学与技术专业 2027 届，坐标北京。
+我是 **Henzhi**，坐标北京。这个站点是我的个人记录本——不是简历，也没有选题规划。
 
-做的事可以概括成一句话：**把大模型的能力落到真正能跑起来的工程里**。跑通一个 demo 不算完，检索准不准、编排稳不稳、成本控不控得住、出问题能不能定位，这些才是分水岭。
+## 这里写什么
 
-## 正在推进的项目
+按三个方向分类放着：
 
-- **LexAgent** — 基于 LangGraph 的法律检索问答 Agent。流式输出 + 双路检索融合 + 自研工具协议，后端 DeepSeek / Ollama 可降级。
-- **Law-RAG-Agent** — 自治法律 RAG Agent，混合检索（pgvector + BM25 + reranker），内部知识库优先级严格高于网页搜索。
-- **select-ask-ai** — 跨平台「选中即问」工具：浏览器 Tampermonkey 脚本 + Python 桌面客户端，覆盖 PDF / Word / WPS 等场景。
-- **gk-line-test** — 公考行测刷题系统，SpringBoot 3.5 + Vue3 全栈，题库由多模态大模型从 PDF 解析。
+- **生活记录** — 日常、杂记、偶尔冒出来的想法。不一定有用，但确实发生过。
+- **学习笔记** — 学过什么、当时怎么理解的、后来发现哪里想错了。写下来是为了让自己下次不用从头再想一遍。
+- **教程笔记** — 能照着做出来的东西：环境怎么配、命令怎么敲、坑在哪一步。
 
-## 技术栈
+想按分类翻的话，去[分类](../categories/)页；只按时间看就进[归档](../archive/)。
 
-- **语言**：Python、TypeScript / JavaScript、Java、SQL
-- **AI 工程**：LangGraph、RAG、pgvector、BM25、reranker、Prompt 设计、Agent 编排
-- **后端 / 前端**：FastAPI、Spring Boot、Redis、PostgreSQL、Vue、Astro
-- **工程化**：Docker、CI、测试与 lint 门禁、成本熔断
+## 为什么写
 
-## 工作方式上的偏好
+因为我记性不算好。很多东西当时觉得搞明白了，过两个月只剩一句「好像在哪见过」。
 
-- 架构上倾向**根因治理**，而不是给症状打补丁
-- 测试和 lint 必须进 CI，作为合并前的硬性门禁
-- 愿意用一点响应延迟换回答准确性
+写下来最省事：一方面留了存档，另一方面，要把一件事写清楚，本身就会逼着我把它真正想明白。所以这里的文章更像是给自己看的笔记，顺手放在了公网上。
+
+如果某篇笔记刚好帮到你，那挺好。
 
 ## 联系
 
 - GitHub：[github.com/Henzhi](https://github.com/Henzhi)
 
-> 这个站点用 [Astro](https://astro.build) 搭配 [Fuwari](https://github.com/saicaca/fuwari) 主题搭建，部署在 GitHub Pages。
+> 站点用 [Astro](https://astro.build) 搭配 [Fuwari](https://github.com/saicaca/fuwari) 主题搭建，部署在 GitHub Pages。

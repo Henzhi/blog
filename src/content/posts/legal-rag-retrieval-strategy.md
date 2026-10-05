@@ -3,7 +3,7 @@ title: 法律 RAG 的检索优先级：为什么网页搜索只能做「发现�
 published: 2026-08-26
 description: 内部知识库 > 官方库校验 > 网页搜索仅作发现——一套把引用准确率放在首位的检索策略，以及日/周预算熔断设计。
 tags: [RAG, 检索, 法律, 架构]
-category: AI 工程
+category: 学习笔记
 draft: false
 ---
 

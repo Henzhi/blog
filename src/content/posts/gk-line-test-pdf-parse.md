@@ -3,7 +3,7 @@ title: 用多模态大模型从 PDF 里「抠」出结构化题库
 published: 2026-09-05
 description: 公考行测刷题系统的题从哪来——没有开放 API，只有 1.7GB 扫描 PDF，于是把 VL 模型当成 OCR + 结构化抽取器用。
 tags: [多模态, Java, SpringBoot, 数据提取]
-category: 全栈
+category: 教程笔记
 draft: false
 ---
 

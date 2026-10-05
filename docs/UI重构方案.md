@@ -4,6 +4,13 @@
 > 站点：https://henzhi.github.io/blog/
 > 当前实现：Fuwari 主题（`src/layouts/MainGridLayout.astro` + `src/components/PostCard.astro`），仅改了 `config.ts` 里的 `themeColor.hue = 220`
 
+> **⚠️ 定位已变更（2026-10-05），本文档部分内容已过时。**
+> 站点从「求职展示」转为**个人记录型博客**，内容重组为三个方向：生活记录 / 学习笔记 / 教程笔记。
+> 受影响的章节：§5.5 作品集页、Hero 的「看作品集」入口与在校信息、首页「精选作品」区块——这些都已移除。
+> `src/pages/projects.astro` 与 `src/data/projects.ts` 已删除，导航改为「首页 / 分类 / 归档 / 关于 / GitHub」。
+> 文档保留原有分析过程作为历史记录，**当前状态请以 README 和 `src/data/categories.ts` 为准**；
+> 其中仍然有效的部分（字体系统、去卡片化排版、设计令牌、CDP 验证方法）没有变动。
+
 ---
 
 ## 一、结论先行

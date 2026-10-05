@@ -2,6 +2,7 @@
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
 import { getCategoryList } from "../../utils/content-utils";
+import { url } from "../../utils/url-utils";
 import WidgetLayout from "./WidgetLayout.astro";
 
 const categories = await getCategoryList();
@@ -33,4 +34,7 @@ const style = Astro.props.style;
             </li>
         ))}
     </ul>
+    <a href={url('/categories/')} class="inline-block mt-3 text-[0.8125rem] text-50 transition-colors hover:text-[var(--primary)]">
+        全部分类 →
+    </a>
 </WidgetLayout>

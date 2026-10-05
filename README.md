@@ -2,6 +2,8 @@
 
 线上在 https://henzhi.github.io/blog/，源码在 [github.com/Henzhi/blog](https://github.com/Henzhi/blog)。
 
+定位是**个人记录型博客**，不承担求职展示功能：写日常生活、整理学习笔记、分享教程笔记。全站内容按这三个分类组织（见 `src/data/categories.ts`），首页与关于页的文案都围绕这个定位，不放简历入口、不放面向招聘方的项目清单。
+
 底子是 Astro + [Fuwari](https://github.com/saicaca/fuwari) 主题，纯静态输出；样式用 Tailwind，搜索框和主题切换那几个小组件是 Svelte 写的，搜索索引靠 Pagefind 在构建时生成，不需要后端。托管在 GitHub Pages 上，push 到 `main` 就自动构建发布，不用自己碰服务器。
 
 ## 设计体系
@@ -31,7 +33,7 @@ title: 文章标题
 published: 2026-09-11
 description: 一句话摘要，列表页和搜索结果里会显示
 tags: [LangGraph, RAG]
-category: AI 工程
+category: 教程笔记
 draft: false
 featured: false
 ---
@@ -41,6 +43,8 @@ featured: false
 
 `title` 和 `published` 是必须的，其余可省。`draft: true` 的文章不进构建，写一半先放着挺方便。`featured: true` 是给首页精选预留的标记，**目前首页还没接这个字段的读取逻辑**（首页现在直接取最新几篇），想用的话在 `src/pages/[...page].astro` 里按它筛。
 
+**`category` 只允许三个值**：`生活记录` / `学习笔记` / `教程笔记`，留空则算「未分类」。取值来源是 `src/data/categories.ts`，`src/content/config.ts` 里挂了 `refine` 校验——写别的词构建会直接报错，不会悄悄多出一个游离分类。要加分类就改那个文件，`/categories/` 索引页和侧栏都会跟着变。
+
 正文除了标准 Markdown，还支持这些：
 
 - `> [!NOTE]` 一类的小提示框（还有 TIP / WARNING / IMPORTANT）
@@ -48,18 +52,21 @@ featured: false
 - KaTeX 数学公式
 - 代码块自动带高亮、行号、复制按钮
 
+**正文里的站内链接要写相对路径**（`[分类](../categories/)`），不能写 `/categories/`。站点在 GitHub Pages 的 `/blog/` 子路径下，裸 `/` 开头会解析到站点根目录直接 404。这条对 `.md` 内容同样适用。
+
 其余常改的地方：
 
 | 想改什么 | 去哪儿 |
 |---|---|
-| 站点标题、导航、社交链接、主题色 | `src/config.ts` |
+| 站点标题、副标题、导航、社交链接、主题色 | `src/config.ts` |
+| 分类定义（三个方向的名称与说明） | `src/data/categories.ts` |
 | 首页简介文案（Default / Long 两版） | `src/components/Hero.astro` |
-| 作品集列表 | `src/data/projects.ts` |
+| 分类索引页 | `src/pages/categories.astro` |
 | 关于页 | `src/content/spec/about.md` |
 | 设计令牌（字体、字号、圆角、色板） | `src/styles/variables.styl` |
 | 样式入口（引入顺序） | `src/layouts/Layout.astro` |
 
-头像那块现在不用图片了，首页是 `Hero.astro` 里一个纯文字 monogram（`H` 字母 + accent 色圆底），`src/assets/images/` 下的头像和 banner 图都已经删掉。
+头像走的是 GitHub 头像外链（`profileConfig.avatar`，`https://github.com/Henzhi.png?size=128`），改了 GitHub 资料头像这里会自动跟着变，`src/assets/images/` 下的图片已经删掉了。
 
 ## 发布
 
@@ -126,6 +133,14 @@ base: "/blog",       // 必须和仓库名一致
 **`src/styles/` 下的样式文件必须被 import，否则全是死文件。** 这是本项目最大的一个历史遗留坑，也是「改了样式线上没生效」的真正原因。Fuwari 重做那次（`893c721`）把 8 个样式文件复制了进来却没在 `Layout.astro` 里接 import——被替换掉的旧 `BaseLayout.astro` 原本是有一行 `import '../styles/global.css'` 的。后果是 `variables.styl` 里改的任何设计令牌**都不会进浏览器**，页面只拿到 Tailwind 扫 class 字面量生成的单属性规则，表现得像「Tailwind 配置改了没用」。现在 `Layout.astro` 顶部按依赖顺序统一 import，**顺序不能乱**：`variables.styl`（定义令牌）→ `main.css`（定义组件类）→ 其余细化样式。
 
 顺带一提，网上流传的「构建报 `The link class does not exist` 就清 `node_modules/.vite`」是**错的诊断**。真实原因就是这个——样式文件没被 import，`@apply link` 自然找不到 `link` 类。清缓存只是碰巧让构建重跑。
+
+**别在样式文件之间用 `@apply` 引用自定义类。** 这是上面那条坑的变体，而且更阴——它**随机复现**。Tailwind 的 `@apply` 只能解析「同一次处理里已经出现过」的自定义类，而 Astro 会把样式拆成多个 CSS chunk（`dist/_astro/` 下能看到两个 `Layout.*.css` 和两个 `_page_.*_.css`）。`main.css` 和 `markdown.css` 分到同一个 chunk 时构建通过，分到不同 chunk 时报：
+
+```
+[vite:css] [postcss] src/styles/markdown.css:86:9: The `btn-regular-dark` class does not exist.
+```
+
+`markdown.css` 的 `.copy-btn` 原本就是 `@apply btn-regular-dark ...`——那是全项目唯一一处跨文件自定义类依赖，构建大约三次挂一次。2026-10-05 已把它就地展开成等价的工具类（见该处注释），之后连续 6 次构建全部通过。**新增样式时如果要用 `@layer components` 里的自定义类，就地展开，或者改成普通 CSS 属性**；`@apply` 引用 Tailwind 自带工具类（含 `dark:` 变体和 `bg-[var(--x)]` 这种任意值）不受影响。
 
 **改样式后别信肉眼，去 CDP 里量 `getComputedStyle`。** 两个真实翻车案例：
 

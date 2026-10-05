@@ -3,7 +3,7 @@ title: select-ask-ai：做一款「选中即问」的工具，最大的坑不在
 published: 2026-09-01
 description: 浏览器脚本 + Python 桌面客户端覆盖 PDF / Word / WPS 场景，难点全在取词和打包上。
 tags: [Python, Tampermonkey, 工具, 桌面端]
-category: 工具
+category: 教程笔记
 draft: false
 ---
 

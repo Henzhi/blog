@@ -3,7 +3,7 @@ title: 这个站点是怎么搭起来的（以及踩的几个坑）
 published: 2026-09-08
 description: Astro + Fuwari 静态站点，从自建服务器迁到 GitHub Pages，记录子路径部署、无头截图假象、配色缓存这几个真实的坑。
 tags: [Astro, 部署, GitHub Pages, 工程]
-category: 工程
+category: 教程笔记
 draft: false
 ---
 

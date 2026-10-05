@@ -102,7 +102,7 @@ cd - >/dev/null
 echo "▸ [3/3] 健康检查…"
 sleep 2
 OK=0
-for path in "/" "/posts/" "/projects/" "/about/";
+for path in "/" "/posts/" "/categories/" "/about/";
 do
   CODE=$(curl -s -o /dev/null -w "%{http_code}" -m 5 "http://localhost:$PORT$path" || echo "000")
   printf "   %-12s %s\n" "$path" "$CODE"
