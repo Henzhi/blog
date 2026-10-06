@@ -95,11 +95,21 @@ class BaseRewritingHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
+class QuietServer(http.server.ThreadingHTTPServer):
+    """daemon 线程 + 静音 handle_error：Chrome 换页时会掐掉未完成的连接，
+    默认会把 ConnectionResetError 的整段 traceback 打到 stdout，把断言输出淹掉。"""
+
+    daemon_threads = True
+
+    def handle_error(self, request, client_address):
+        pass
+
+
 def start_server(directory, base):
     handler = functools.partial(BaseRewritingHandler, directory=directory)
     BaseRewritingHandler.base = base
     port = free_port()
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), handler)
+    server = QuietServer(("127.0.0.1", port), handler)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     return f"http://127.0.0.1:{port}{base}", server
 
@@ -201,10 +211,13 @@ PROBE = """
   const root = q('.toc-root'), panel = q('.toc-panel'), tab = q('.toc-tab'), fab = q('.toc-fab');
   const items = [...document.querySelectorAll('.toc-item')];
   const art = document.getElementById('post-container');
+  const grid = document.getElementById('main-grid');
+  const side = document.getElementById('sidebar');
   const cs = (el) => el ? getComputedStyle(el) : null;
   const box = (el) => { if (!el) return null; const r = el.getBoundingClientRect();
     return {x: Math.round(r.left), y: Math.round(r.top), w: Math.round(r.width), h: Math.round(r.height)}; };
   const crumb = q('.toc-item[aria-current="location"]');
+  const ab = box(art);
   return {
     mode: root ? root.dataset.mode : null,
     open: root ? root.dataset.open : null,
@@ -219,7 +232,12 @@ PROBE = """
     panelInert: panel ? panel.hasAttribute('inert') : null,
     tabBox: box(tab), tabVis: cs(tab) ? cs(tab).visibility : null,
     fabBox: box(fab), fabVis: cs(fab) ? cs(fab).visibility : null,
-    articleBox: box(art),
+    articleBox: ab,
+    sidebarBox: box(side),
+    // 正文是否落在视口正中
+    vwCenter: Math.round(window.innerWidth / 2),
+    artCenter: ab ? Math.round(ab.x + ab.w / 2) : null,
+    gridCols: grid ? getComputedStyle(grid).gridTemplateColumns : null,
     active: crumb ? crumb.dataset.slug : null,
     overflowX: document.documentElement.scrollWidth > window.innerWidth + 1,
     errors: window.__errs ? window.__errs.slice() : [],
@@ -269,12 +287,26 @@ def suite(page, base, deep, shallow):
     check("A1 进入 rail 模式", p["mode"] == "rail", f"mode={p['mode']}")
     check("A2 默认展开", p["open"] == "true")
     check("A3 面板挂在栅格外（absolute）", p["panelPos"] == "absolute")
-    check("A4 面板不压正文", p["articleBox"]["x"] - p["panelBox"]["x"] - p["panelBox"]["w"] >= 16,
-          f"gap={p['articleBox']['x'] - p['panelBox']['x'] - p['panelBox']['w']}px")
-    check("A5 面板没被挤出视口左侧", p["panelBox"]["x"] >= 0, f"x={p['panelBox']['x']}")
-    check("A6 多级目录（含 level 1）", p["levels"] == ["0", "1"], f"levels={p['levels']}")
-    check("A7 文本已削掉 autolink 的 #", not any(t.endswith("#") for t in p["texts"]))
-    check("A8 无 JS 报错", p["errors"] == [], str(p["errors"]))
+    check("A4 栅格是三栏 [12.5rem 1fr 12.5rem]",
+          (p["gridCols"] or "").split(" ").__len__() == 3, p["gridCols"])
+    check("A5 左右两栏等宽", (lambda c: c and abs(float(c[0].strip("px")) - float(c[2].strip("px"))) < 1)(p["gridCols"].split()),
+          p["gridCols"])
+    check("A6 正文落在视口正中", p["artCenter"] is not None and abs(p["artCenter"] - p["vwCenter"]) <= 2,
+          f"正文中心={p['artCenter']} 视口中心={p['vwCenter']}")
+    check("A7 正文宽度顶满 42rem", p["articleBox"]["w"] == 672, f"w={p['articleBox']['w']}")
+    check("A8 目录与正文间距 = 栅格 gap(48px)",
+          p["articleBox"]["x"] - (p["panelBox"]["x"] + p["panelBox"]["w"]) == 48,
+          f"gap={p['articleBox']['x'] - (p['panelBox']['x'] + p['panelBox']['w'])}px")
+    check("A9 目录面板对齐栅格第一列（不漏到容器外）",
+          p["panelBox"]["x"] >= 0 and p["panelBox"]["w"] == 200,
+          f"x={p['panelBox']['x']} w={p['panelBox']['w']}")
+    check("A10 多级目录（含 level 1）", p["levels"] == ["0", "1"], f"levels={p['levels']}")
+    check("A11 文本已削掉 autolink 的 #", not any(t.endswith("#") for t in p["texts"]))
+    check("A12 无 JS 报错", p["errors"] == [], str(p["errors"]))
+    # gutter 只有一条真相：导航栏内容左边 = 目录列左边 = 栅格第一列的起点
+    nav_left = page.js("Math.round(document.querySelector('#navbar a').getBoundingClientRect().left)")
+    check("A13 导航栏与目录列在同一条 gutter 上", abs(nav_left - p["panelBox"]["x"]) <= 1,
+          f"导航={nav_left} 目录列={p['panelBox']['x']}")
     page.shot("01-rail-open.png")
 
     # ---------------- B. 点击跳转 ----------------
@@ -308,7 +340,8 @@ def suite(page, base, deep, shallow):
     time.sleep(0.3)
 
     # ---------------- D. 折叠 / 展开 ----------------
-    print("\n=== D. 折叠与展开 ===")
+    print("\n=== D. 折叠与展开（含正文不位移） ===")
+    before = page.js(PROBE)
     page.js(f"({CLICK_SEL})('.toc-icon-btn')")
     time.sleep(0.5)
     c = page.js(PROBE)
@@ -316,10 +349,29 @@ def suite(page, base, deep, shallow):
     check("D2 面板隐藏且移出可达树", c["panelVis"] == "hidden" and c["panelInert"] is True)
     check("D3 竖排「目录」标签出现", c["tabVis"] == "visible" and c["tabBox"]["w"] > 0, str(c["tabBox"]))
     check("D4 状态写入 localStorage", page.js("localStorage.getItem('toc-collapsed')") == "1")
+    # 这一条是「收起时正文仍保持居中」的硬指标：位置和宽度一个像素都不能变
+    check("D5 收起后正文位置与宽度零位移",
+          c["articleBox"]["x"] == before["articleBox"]["x"]
+          and c["articleBox"]["w"] == before["articleBox"]["w"],
+          f"{before['articleBox']} -> {c['articleBox']}")
+    check("D6 收起后正文仍在视口正中", abs(c["artCenter"] - c["vwCenter"]) <= 2,
+          f"正文中心={c['artCenter']} 视口中心={c['vwCenter']}")
+    # 收起后标签的右边缘应该正好落在展开时面板的右边缘上——开合之间不跳位，
+    # 两者与正文的间距都是栅格 gap(48px)
+    check("D7 标签右边缘与展开时面板右边缘对齐，且与正文同为 48px 间距",
+          c["tabBox"]["x"] + c["tabBox"]["w"] == before["panelBox"]["x"] + before["panelBox"]["w"]
+          and c["articleBox"]["x"] - (c["tabBox"]["x"] + c["tabBox"]["w"]) == 48,
+          f"标签右={c['tabBox']['x'] + c['tabBox']['w']} 面板右={before['panelBox']['x'] + before['panelBox']['w']} "
+          f"间距={c['articleBox']['x'] - (c['tabBox']['x'] + c['tabBox']['w'])}px")
     page.shot("03-rail-collapsed.png")
     page.js(f"({CLICK_SEL})('.toc-tab')")
     time.sleep(0.5)
-    check("D5 点标签可重新展开", page.js(PROBE)["open"] == "true")
+    e = page.js(PROBE)
+    check("D8 点标签可重新展开", e["open"] == "true")
+    check("D9 重新展开后正文回到原位",
+          e["articleBox"]["x"] == before["articleBox"]["x"]
+          and e["articleBox"]["w"] == before["articleBox"]["w"],
+          f"{before['articleBox']} -> {e['articleBox']}")
 
     # ---------------- E. swup 换页 ----------------
     print("\n=== E. swup 无刷新换页 ===")
@@ -474,6 +526,42 @@ def suite(page, base, deep, shallow):
         "(() => { const a=document.querySelector('.toc-item[aria-current=\"location\"]');"
         "return a ? a.dataset.slug : null; })()") is not None)
     page.shot("09-home-to-post.png")
+
+    # ---------------- N. 多宽度自查 ----------------
+    print("\n=== N. 各屏幕宽度下的模式 / 居中 / 溢出 ===")
+    rows = []
+    for w, h in ((1920, 1080), (1600, 1000), (1440, 900), (1280, 800),
+                 (1279, 800), (1024, 800), (768, 1024), (390, 844)):
+        page.viewport(w, h, mobile=w < 600)
+        page.goto(deep, settle=1.0)
+        n = page.js(PROBE)
+        art = n["articleBox"]
+        drift = abs(n["artCenter"] - n["vwCenter"]) if n["artCenter"] else None
+        rows.append((w, n["mode"], art["w"], drift, n["overflowX"]))
+        print(f"       {w:>4}px  mode={n['mode']:<7} 正文宽={art['w']:>3}  "
+              f"居中度偏差={drift}  overflow={n['overflowX']}")
+        if w in (1440, 1279):
+            page.shot(f"N-{w}.png")
+        check(f"N {w}px 目录形态正确", n["mode"] == ("rail" if w >= 1280 else "drawer"),
+              f"mode={n['mode']}")
+        check(f"N {w}px 无横向溢出", not n["overflowX"])
+        if w >= 1280:
+            check(f"N {w}px 正文居中（偏差 ≤2px）", drift is not None and drift <= 2, f"偏差={drift}")
+            check(f"N {w}px 正文顶满 42rem", art["w"] == 672, f"w={art['w']}")
+        else:
+            check(f"N {w}px 正文未被压缩到不可读（≥320px）", art["w"] >= 320, f"w={art['w']}")
+    # 栅格是写死在 #main-grid 上的（它不在 swup 的 container 里，换页不会重建），
+    # 所以列表页也必须是三栏——否则从列表页点进文章，正文会停在两栏的位置不回正
+    page.viewport(1680, 1000)
+    page.goto(f"{base}/")
+    cols = page.js(
+        "getComputedStyle(document.getElementById('main-grid'))"
+        ".gridTemplateColumns.split(' ').length")
+    check("N 首页同样拿到三栏栅格（换页不会错位）", cols == 3, f"列数={cols}")
+    main_w = page.js(
+        "Math.round(document.getElementById('swup-container').getBoundingClientRect().width)")
+    check("N 首页主栏宽度与文章页一致（672）", main_w == 672, f"main宽={main_w}")
+    page.shot("10-home-three-col.png")
 
 
 def main():

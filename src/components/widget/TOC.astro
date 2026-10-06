@@ -16,12 +16,15 @@ const headings = Astro.props.headings ?? [];
  * 左侧目录（TOC）
  *
  * 两种形态，由 `data-mode` 单点切换（值由 JS 的 matchMedia 决定，CSS 不重复写断点）：
- *   rail   —— 视口 ≥ 100em：左侧固定竖栏，收起后留一枚贴着正文左边的竖排「目录」标签
- *   drawer —— 视口 < 100em：右下角悬浮按钮 → 从左侧滑出的抽屉
+ *   rail   —— 视口 ≥ 1280px（= tailwind 的 xl）：左侧固定竖栏，收起后留一枚竖排「目录」标签
+ *   drawer —— 视口 < 1280px：右下角悬浮按钮 → 从左侧滑出的抽屉
  *
- * 100em 的来历：--page-width = 72rem（constants.ts），竖栏 11.5~16rem + 左右各 1.5rem 间距，
- * 需要 ≥ 72 + 2×13.5 = 99rem 才能不压在正文上，故取 100em 留一点余量。
- * 用 em 而不是 px：媒体查询里的 em 相对浏览器默认字号，和 rem 尺寸是同一条缩放链。
+ * 断点必须和 `#main-grid` 的 `xl:grid-cols-[12.5rem_minmax(0,1fr)_12.5rem]` 对齐，
+ * 而且 tailwind 的 xl 是 px 断点，所以这里也只能用 px（别改成 em，em 相对默认字号会错位）。
+ *
+ * 竖栏不是栅格里的元素，而是绝对定位的浮层，位置对齐到栅格的第一列
+ * （容器左边缘 + #main-grid 的 px-4），宽度就等于那一列的 12.5rem。
+ * 这样做的好处是目录开合不会改变栅格宽度，正文永远不会因为展开目录而位移。
  */
 
 const isPostRoute = Astro.url.pathname.startsWith(url("/posts/"));
@@ -121,11 +124,9 @@ const enabled = tocItems.length > 0;
         --toc-fg-2: rgba(0, 0, 0, 0.52);
         --toc-fg-3: rgba(0, 0, 0, 0.34);
         --toc-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
-        --toc-rail-w: clamp(
-            11.5rem,
-            calc((100vw - var(--page-width, 72rem)) / 2 - 3rem),
-            16rem
-        );
+        /* 与 #main-grid 的 px-4、第一列宽度保持一致，改栅格时同步改这里 */
+        --toc-gutter: 1rem;
+        --toc-col-w: 12.5rem;
     }
     :root.dark .toc-root {
         --toc-fg-1: rgba(255, 255, 255, 0.8);
@@ -278,13 +279,12 @@ const enabled = tocItems.length > 0;
         overflow-wrap: anywhere;
     }
 
-    /* ---------------- rail：左侧固定竖栏 ---------------- */
+    /* ---------------- rail：左侧固定竖栏（对齐栅格第一列） ---------------- */
     .toc-root[data-mode="rail"] .toc-panel {
         position: absolute;
         top: 5.5rem;
-        right: 100%;
-        margin-right: 1.5rem;
-        width: var(--toc-rail-w);
+        left: var(--toc-gutter);
+        width: var(--toc-col-w);
         max-height: calc(100vh - 8rem);
         max-height: calc(100dvh - 8rem);
         pointer-events: auto;
@@ -297,11 +297,11 @@ const enabled = tocItems.length > 0;
         pointer-events: none;
         transition: opacity 0.2s, transform 0.2s, visibility 0s linear 0.2s;
     }
-    /* 收起后留在正文左边的竖排标签 */
+    /* 收起后留在这一列右边缘（也就是正文左边）的竖排标签 */
     .toc-tab {
         position: absolute;
         top: 50%;
-        right: 100%;
+        right: calc(100% - var(--toc-gutter) - var(--toc-col-w));
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -431,7 +431,10 @@ const enabled = tocItems.length > 0;
 </style>
 
 <script>
-	const RAIL_QUERY = "(min-width: 100em)";
+	/** 必须与 #main-grid 的 xl 断点（1280px）一致，也就是竖栏真正有地方放的那个宽度。
+	 *  用 px 不用 em：tailwind 的 xl 是 px 断点，两处差一点点就会出现「栅格还是两栏、
+	 *  但竖栏已经按三栏摆位」的错位。 */
+	const RAIL_QUERY = "(min-width: 1280px)";
 	/** 吸顶导航 4.5rem(72px) + 一点呼吸，跳转后标题别顶着导航栏 */
 	const NAVBAR_OFFSET = 88;
 	const STORAGE_KEY = "toc-collapsed";

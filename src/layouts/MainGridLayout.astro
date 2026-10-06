@@ -67,8 +67,14 @@ const mainPanelTop = siteConfig.banner.enable
     <div class="relative max-w-[var(--page-width)] mx-auto pointer-events-auto">
         <!-- 横向 gutter 必须所有断点都有：列表项（PostCard / ArchivePanel / 分类页 / 上下篇）用的是
              `-mx-2 px-2`，靠这 16px 向两侧出血做 hover 背景。移动端之前是 px-0，负边距直接溢出到视口外，
-             再被 #swup-container 的 overflow-hidden 裁掉——表现就是内容贴边、右侧日期像被切了。 -->
-        <div id="main-grid" class="transition duration-700 w-full left-0 right-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_12.5rem]
+             再被 #swup-container 的 overflow-hidden 裁掉——表现就是内容贴边、右侧日期像被切了。
+
+             xl 起换成三栏 [12.5rem][正文][12.5rem]：左右等宽，正文才可能真正落在视口正中。
+             中间列 = 75rem - 32(px-4) - 200 - 48 - 48 - 200 = 672px = 42rem，正文刚好顶满上限。
+             注意这个栅格必须**跟页面无关**且**不能随目录开合变化**：
+             #main-grid 不在 swup 的 container 里（换页时不会重建），所以它只能写死；
+             而左侧那一列是常驻占位——目录收起时正文位置纹丝不动，这就是「收起仍居中」的实现方式。 -->
+        <div id="main-grid" class="transition duration-700 w-full left-0 right-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_12.5rem] xl:grid-cols-[12.5rem_minmax(0,1fr)_12.5rem]
     mx-auto gap-12 px-4"
         >
             <!-- Banner image credit -->
@@ -84,6 +90,11 @@ const mainPanelTop = siteConfig.banner.enable
                 </Icon>
             </a>}
 
+
+            <!-- 左侧占位列：xl 起撑出与右侧栏等宽的一栏，把正文推到视口正中。
+                 目录本体是固定定位的浮层（见文件底部），不坐在这一列里——
+                 所以它开合不会改变这一列的宽度，正文不会位移。 -->
+            <div class="hidden xl:block" aria-hidden="true"></div>
 
             <main id="swup-container" class="transition-swup-fade min-w-0 overflow-hidden">
                 <div id="content-wrapper" class="onload-animation">

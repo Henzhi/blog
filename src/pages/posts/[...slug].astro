@@ -48,8 +48,9 @@ const jsonLd = {
 <MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings}>
     <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
 
-    <!-- 正文栏：42rem 行长上限，无卡片容器，排版即结构 -->
-    <article id="post-container" class="max-w-[42rem]">
+    <!-- 正文栏：42rem 行长上限，无卡片容器，排版即结构。
+         xl 下中间列正好 42rem，mx-auto 是兜底（默认字号被调大、或 lg~xl 之间中列更宽时保持居中） -->
+    <article id="post-container" class="max-w-[42rem] mx-auto">
         <!-- title -->
         <h1 data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title"
             class="onload-animation text-[length:var(--text-h1)] leading-[1.25] font-semibold tracking-tight text-black/90 dark:text-white/90 mb-3">

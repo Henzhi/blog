@@ -15,7 +15,7 @@ if (!aboutPost) {
 const { Content } = await render(aboutPost);
 ---
 <MainGridLayout title={i18n(I18nKey.about)} description={i18n(I18nKey.about)}>
-    <div class="max-w-[42rem] pt-2 onload-animation">
+    <div class="max-w-[42rem] mx-auto pt-2 onload-animation">
         <Markdown class="markdown-content">
             <Content />
         </Markdown>
