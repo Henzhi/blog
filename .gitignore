@@ -1,8 +1,8 @@
 # build output
 dist/
 
-# TOC 回归脚本（scripts/toc-check.py）的截图输出
-toc-shots/
+# TOC 回归脚本（scripts/toc-check.py）的截图输出，含 --out-dir 指定的各种目录名
+toc-shots*/
 
 # generated types
 .astro/
