@@ -60,13 +60,11 @@
         hover:decoration-[var(--link-hover)] active:decoration-[var(--link-active)] underline-offset-[0.25rem]
     }
 
+    /* TOC 的定位/尺寸全在 src/components/widget/TOC.astro 内部，
+       这里只留 swup 换页时用的淡入淡出开关 */
     .toc-hide,
     .toc-not-ready {
         @apply opacity-0 pointer-events-none
-    }
-
-    #toc-inner-wrapper {
-        mask-image: linear-gradient(to bottom, transparent 0%, black 2rem, black calc(100% - 2rem), transparent 100%);
     }
 
     .hide-scrollbar {

@@ -14,9 +14,31 @@
 - **正文**：18px / 1.75 行高，正文栏 `max-w-[42rem]`（672px，约 45 个中文字符一行）。
 - **色板**：主色锁定 hue 250（`oklch(0.55 0.14 250)`），`themeColor.fixed: true`。强调色只出现在链接和当前态两处，不再满屏点缀。
 - **圆角**：`--radius-lg` 从 1rem 收到 0.75rem，阴影基本去掉。
-- **布局**：主栏 + **右侧** 12.5rem 窄栏（原左侧 280px 侧栏）。TOC 宽度从靠 `100vw` 反推的 `calc()` 改成固定 `11rem`，解掉了和栅格的隐式耦合。
+- **布局**：主栏 + **右侧** 12.5rem 窄栏（原左侧 280px 侧栏）。
+- **目录（TOC）**：挂在主栏**左侧**、栅格之外，宽 `clamp(11.5rem, (100vw-72rem)/2-3rem, 16rem)`。
+  `≥ 100em`（1600px）显示为固定竖栏，可收起成一枚竖排「目录」标签，状态存 `localStorage.toc-collapsed`；
+  更窄则退化成右下角悬浮按钮 + 左侧滑出抽屉。定位/样式全在 `src/components/widget/TOC.astro` 内，
+  断点只由 JS 的 `matchMedia` 决定（`data-mode`），CSS 不重复写一遍——避免两处断点写歪。
 
 设计令牌（字号阶梯、字体栈、圆角、间距）都集中在 `src/styles/variables.styl`。
+
+### 目录的回归验证
+
+目录这块的行为（断点、折叠、滚动高亮、swup 换页后重建）肉眼刷页面很难覆盖全，
+改完跑一遍脚本：
+
+```bash
+npm run build && python scripts/toc-check.py        # 测构建产物
+python scripts/toc-check.py --url https://henzhi.github.io/blog   # 测线上
+```
+
+脚本自己起静态服务（把 `/blog/` 映射到 `dist/`）、自己起 headless Chrome、自己收尾，
+**不用手动 `&` 起后台进程**（沙箱会在命令结束时回收后台进程，手动起的服务经常是假故障）。
+45 项断言覆盖 rail/drawer 两种形态、多级缩进、点击跳转、滚动高亮跟随、触底、
+折叠展开 + `localStorage` 记忆、swup 换页重建、目录超长内部滚动、亮暗主题、非文章页。
+截图落在 `toc-shots/`（已 gitignore），退出码 0 = 全通过。
+
+依赖 `websocket-client`；Chrome 路径能自动找，找不到用 `--chrome` 指定。
 
 ## 平时怎么用
 

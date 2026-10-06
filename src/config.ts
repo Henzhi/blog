@@ -26,8 +26,8 @@ export const siteConfig: SiteConfig = {
 		},
 	},
 	toc: {
-		enable: true, // Display the table of contents on the right side of the post
-		depth: 2, // Maximum heading depth to show in the table, from 1 to 3
+		enable: true, // 在文章页左侧显示可折叠目录（≥100em 为固定竖栏，以下为抽屉）
+		depth: 3, // 目录最多展示几级标题（正文最小标题级为第 1 级），1~3
 	},
 	favicon: [
 		// Leave this array empty to use the default favicon

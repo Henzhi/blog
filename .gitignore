@@ -1,6 +1,9 @@
 # build output
 dist/
 
+# TOC 回归脚本（scripts/toc-check.py）的截图输出
+toc-shots/
+
 # generated types
 .astro/
 
