@@ -75,6 +75,13 @@
         display: none;
     }
 
+    /* 文字色阶 —— 按 WCAG AA（正文 4.5:1）校准。
+       背景取 --page-bg：亮 oklch(0.95 0.008 250) / 暗 oklch(0.145 0.008 250)，
+       括号内为实测对比度，换算脚本见 docs/功能与交互优化清单.md。
+
+       原来 30 / 50 两档只有 2.08:1 和 3.86:1 —— 日期、字数、标签这些 13px
+       元信息在亮色模式下基本读不清。注意 30 与 50 的间距被压缩了，
+       这是「两档都要可读」的必然结果：层级改由字号与位置承担，不再靠透明度硬压。 */
     .text-90 {
         @apply text-black/90 dark:text-white/90
     }
@@ -82,13 +89,10 @@
         @apply text-black/75 dark:text-white/75
     }
     .text-50 {
-        @apply text-black/50 dark:text-white/50
+        @apply text-black/60 dark:text-white/55
     }
     .text-30 {
-        @apply text-black/30 dark:text-white/30
-    }
-    .text-25 {
-        @apply text-black/25 dark:text-white/25
+        @apply text-black/55 dark:text-white/50
     }
 
     /* 节标题：小号加宽字距标签（joshwcomeau 式分节） */
@@ -96,7 +100,7 @@
         font-size: var(--text-label);
         font-weight: 500;
         letter-spacing: 0.12em;
-        @apply text-black/50 dark:text-white/50
+        @apply text-black/60 dark:text-white/55
     }
 
     .meta-icon {

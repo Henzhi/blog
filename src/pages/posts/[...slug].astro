@@ -1,5 +1,8 @@
 ---
 import path from "node:path";
+// 公式样式按页引入：全局引入会让首页 / 归档 / 分类页白背约 20KB CSS，
+// 而全站只有文章页与关于页会出现公式。
+import "katex/dist/katex.css";
 import License from "@components/misc/License.astro";
 import Markdown from "@components/misc/Markdown.astro";
 import I18nKey from "@i18n/i18nKey";

@@ -27,7 +27,9 @@ import {
 import { defaultFavicons } from "../constants/icon";
 import type { Favicon } from "../types/config";
 import { pathsEqual, url } from "../utils/url-utils";
-import "katex/dist/katex.css";
+
+// KaTeX 样式不在这里引入：它只对含公式的页面有用，全局引入会让首页白背约 20KB CSS。
+// 需要的那两个页面（文章页 / 关于页）各自 import。
 
 interface Props {
 	title?: string;
@@ -157,7 +159,10 @@ const bannerOffset =
 
 		<slot name="head"></slot>
 
-		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={`${Astro.site}rss.xml`}/>
+		<!-- RSS 自动发现：必须是带 base 的绝对 URL。Astro.site 只含 origin，
+		     直接拼 `${Astro.site}rss.xml` 会得到 /rss.xml（缺 /blog）→ 404，
+		     阅读器的「粘贴首页自动发现」就拿不到 feed。 -->
+		<link rel="alternate" type="application/rss+xml" title={profileConfig.name} href={new URL(url("rss.xml"), Astro.site).href}/>
 
 	</head>
 	<body class=" min-h-screen transition " class:list={[{"lg:is-home": isHomePage, "enable-banner": enableBanner}]}
@@ -519,16 +524,61 @@ window.onresize = () => {
 </script>
 
 <script>
-import PhotoSwipeLightbox from "photoswipe/lightbox"
-import "photoswipe/style.css"
+import photoswipeCssUrl from "photoswipe/style.css?url";
 
-let lightbox: PhotoSwipeLightbox
-let pswp = import("photoswipe")
+/** 外部只用到 destroy，不必为它做 photoswipe 的类型体操 */
+type Lightbox = { destroy?: () => void };
 
-function createPhotoSwipe() {
-	lightbox = new PhotoSwipeLightbox({
+let lightbox: Lightbox | undefined
+let photoswipeModule: typeof import("photoswipe") | undefined
+
+/**
+ * 灯箱改为按需加载。
+ * 原来 photoswipe 是静态 import —— 59KB JS + 4.4KB CSS 在每一页都要下载，
+ * 包括没有任何图片的首页、归档页、分类页。现在改成「页面里真有可放大的图才加载」。
+ * 样式用 `?url` 只取地址、自己插 <link>，这样首屏不会带上它。
+ */
+function injectPhotoSwipeCss(): Promise<void> {
+	return new Promise((resolve) => {
+		if (document.querySelector("link[data-photoswipe-css]")) {
+			resolve()
+			return
+		}
+		const link = document.createElement("link")
+		link.rel = "stylesheet"
+		link.href = photoswipeCssUrl
+		link.dataset.photoswipeCss = ""
+		link.addEventListener("load", () => resolve(), { once: true })
+		link.addEventListener("error", () => resolve(), { once: true })
+		document.head.appendChild(link)
+	})
+}
+
+async function loadPhotoSwipeModule() {
+	if (!photoswipeModule) {
+		const [, mod] = await Promise.all([
+			injectPhotoSwipeCss(),
+			import("photoswipe"),
+		])
+		photoswipeModule = mod
+	}
+	return photoswipeModule
+}
+
+async function createPhotoSwipe() {
+	// 没有可放大的图片就直接不加载
+	if (!document.querySelector(".custom-md img, #post-cover img")) return
+
+	const [{ default: PhotoSwipeLightbox }, pswpModule] = await Promise.all([
+		import("photoswipe/lightbox"),
+		loadPhotoSwipeModule(),
+	])
+	// 加载期间可能又来了一次调用
+	if (lightbox) return
+
+	const instance = new PhotoSwipeLightbox({
 		gallery: ".custom-md img, #post-cover img",
-		pswpModule: () => pswp,
+		pswpModule: () => Promise.resolve(pswpModule),
 		closeSVG: '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="M480-424 284-228q-11 11-28 11t-28-11q-11-11-11-28t11-28l196-196-196-196q-11-11-11-28t11-28q11-11 28-11t28 11l196 196 196-196q11-11 28-11t28 11q11 11 11 28t-11 28L536-480l196 196q11 11 11 28t-11 28q-11 11-28 11t-28-11L480-424Z"/></svg>',
 		zoomSVG: '<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#ffffff"><path d="M340-540h-40q-17 0-28.5-11.5T260-580q0-17 11.5-28.5T300-620h40v-40q0-17 11.5-28.5T380-700q17 0 28.5 11.5T420-660v40h40q17 0 28.5 11.5T500-580q0 17-11.5 28.5T460-540h-40v40q0 17-11.5 28.5T380-460q-17 0-28.5-11.5T340-500v-40Zm40 220q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l224 224q11 11 11 28t-11 28q-11 11-28 11t-28-11L532-372q-30 24-69 38t-83 14Zm0-80q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>',
 		padding: { top: 20, bottom: 20, left: 20, right: 20 },
@@ -540,7 +590,7 @@ function createPhotoSwipe() {
 		doubleTapAction: 'zoom',
 	})
 
-	lightbox.addFilter("domItemData", (itemData, element) => {
+	instance.addFilter("domItemData", (itemData, element) => {
 		if (element instanceof HTMLImageElement) {
 			itemData.src = element.src
 
@@ -553,21 +603,23 @@ function createPhotoSwipe() {
 		return itemData
 	})
 
-	lightbox.init()
+	instance.init()
+	lightbox = instance
 }
 
 const setup = () => {
-	if (!lightbox) {
-		createPhotoSwipe()
-	}
+	void createPhotoSwipe()
+
 	window.swup.hooks.on("page:view", () => {
-		createPhotoSwipe()
+		void createPhotoSwipe()
 	})
 
 	window.swup.hooks.on(
 		"content:replace",
 		() => {
 			lightbox?.destroy?.()
+			// 必须置空：否则换页后 page:view 会以为灯箱还在，不再重建
+			lightbox = undefined
 		},
 		{ before: true },
 	)

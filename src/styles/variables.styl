@@ -47,8 +47,10 @@ define(vars)
         {key}: value[1]
 
 define({
-  /* 强调色收敛：仅用于正文链接与导航当前态，固定 hue 250 */
-  --primary: oklch(0.55 0.14 250) oklch(0.72 0.15 250)
+  /* 强调色收敛：仅用于正文链接与导航当前态，固定 hue 250
+     亮色档从 0.55 降到 0.52：0.55 在浅背景上只有 4.19:1，低于 AA 的 4.5:1。
+     暗色档不变（0.72 在深背景上是 8.01:1）。 */
+  --primary: oklch(0.52 0.15 250) oklch(0.72 0.15 250)
   --accent-muted: oklch(0.45 0.08 250) oklch(0.45 0.06 250)
   --page-bg: oklch(0.95 0.008 var(--hue)) oklch(0.145 0.008 var(--hue))
   --card-bg: white oklch(0.205 0.010 var(--hue))

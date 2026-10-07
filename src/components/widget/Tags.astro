@@ -21,7 +21,7 @@ const style = Astro.props.style;
 <WidgetLayout name={i18n(I18nKey.tags)} id="tags" class={className} style={style}>
     <div class="flex gap-2 flex-wrap">
         {topTags.map(t => (
-            <a href={getTagUrl(t.name)} aria-label={`View all posts with the ${t.name.trim()} tag`}
+            <a href={getTagUrl(t.name)} aria-label={`查看「${t.name.trim()}」标签下的全部文章`}
                class="inline-flex items-center h-7 px-2.5 rounded-md text-[0.8125rem] text-75
                       border border-[var(--border-subtle)] bg-transparent
                       transition-colors hover:border-[var(--primary)] hover:text-[var(--primary)]">

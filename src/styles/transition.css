@@ -31,8 +31,31 @@ html.is-animating .transition-swup-fade {
     animation-delay: 100ms
 }
 #swup-container {
+    /* swup 的 a11y 插件换页后会把焦点移到这个容器上，容器本身不需要焦点环
+       （它不是可交互元素）。注意这不是「全局砍掉焦点样式」—— 见下面的 :focus-visible。 */
     outline: none;
 }
+
+/* ---------------------------------------------------------------
+   焦点可见性
+   全站原先没有任何 :focus-visible 规则，而搜索框等元素上的 outline:0
+   把键盘焦点指示彻底抹掉了。这里统一补一条与设计语言一致的焦点环：
+   只在键盘操作时出现（:focus-visible），鼠标点击不会看到。
+   --------------------------------------------------------------- */
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* 输入类元素本身有背景块，焦点环贴着边框更自然 */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
 #content-wrapper {
     animation-delay: var(--content-delay);
 }
@@ -50,4 +73,38 @@ html.is-animating .transition-swup-fade {
 #post-container :nth-child(4) { animation-delay: calc(var(--content-delay) + 175ms) }
 #post-container :nth-child(5) { animation-delay: calc(var(--content-delay) + 250ms) }
 #post-container :nth-child(6) { animation-delay: calc(var(--content-delay) + 325ms) }
+
+/* ---------------------------------------------------------------
+   动效降级
+   TOC 组件内部已有自己的降级处理，这里覆盖全局剩下的三处：
+   入场动画、swup 换页过渡、以及各处 transition。
+
+   注意 .onload-animation 的可见状态是靠 animation-fill-mode: forwards 推到
+   opacity:1 的 —— 直接禁掉动画会让内容停在 opacity: 0（整页空白），
+   所以降级里必须显式补 opacity: 1。
+   --------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+    .onload-animation {
+        animation: none;
+        opacity: 1;
+    }
+
+    html.is-animating .transition-swup-fade {
+        opacity: 1;
+        transform: none;
+    }
+
+    html.is-changing .transition-swup-fade {
+        transition: none;
+    }
+
+    *,
+    *::before,
+    *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+    }
+}
 

@@ -1,5 +1,6 @@
 ---
-
+// 与文章页一致：公式样式按页引入，不占全局 CSS
+import "katex/dist/katex.css";
 import { getEntry, render } from "astro:content";
 import Markdown from "@components/misc/Markdown.astro";
 import I18nKey from "../i18n/i18nKey";

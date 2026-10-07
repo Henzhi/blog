@@ -40,7 +40,7 @@ const showUpdated =
 
     <span aria-hidden="true">·</span>
     <a href={getCategoryUrl(category)}
-       aria-label={`View all posts in the ${category} category`}
+       aria-label={`查看「${category || i18n(I18nKey.uncategorized)}」分类下的全部文章`}
        class="transition-colors hover:text-[var(--primary)]">
         {category || i18n(I18nKey.uncategorized)}
     </a>

@@ -1,5 +1,6 @@
 <script lang="ts">
 import { AUTO_MODE, DARK_MODE, LIGHT_MODE } from "@constants/constants.ts";
+import { localIcons } from "@constants/local-icons";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import Icon from "@iconify/svelte";
@@ -10,6 +11,15 @@ import {
 } from "@utils/setting-utils.ts";
 import { onMount } from "svelte";
 import type { LIGHT_DARK_MODE } from "@/types/config.ts";
+
+/**
+ * 图标传本地数据（由 @iconify-json 提取，见 scripts/gen-local-icons.mjs），
+ * 而不是字符串名 —— 传字符串名时 @iconify/svelte 会在运行时去 api.iconify.design
+ * 拉图标集，国内访问不稳，失败时按钮就是一个空白方块。传对象走离线路径，零网络请求。
+ */
+const iconSunny = localIcons["material-symbols:wb-sunny-outline-rounded"];
+const iconDark = localIcons["material-symbols:dark-mode-outline-rounded"];
+const iconAuto = localIcons["material-symbols:radio-button-partial-outline"];
 
 // 这个组件不接收任何 props。但 Svelte 5 的 runes 组件在未声明 props 时，类型会被推断成
 // Record<string, never>，于是 Astro 传下来的 client:only 指令会触发 ts(2322)。
@@ -65,15 +75,15 @@ function hidePanel() {
 
 <!-- z-50 make the panel higher than other float panels -->
 <div class="relative z-50" role="menu" tabindex="-1" onmouseleave={hidePanel}>
-    <button aria-label="Light/Dark Mode" role="menuitem" class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="scheme-switch" onclick={toggleScheme} onmouseenter={showPanel}>
+    <button aria-label="切换亮色 / 暗色 / 跟随系统" role="menuitem" class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="scheme-switch" onclick={toggleScheme} onmouseenter={showPanel}>
         <div class="absolute" class:opacity-0={mode !== LIGHT_MODE}>
-            <Icon icon="material-symbols:wb-sunny-outline-rounded" class="text-[1.25rem]"></Icon>
+            <Icon icon={iconSunny} class="text-[1.25rem]"></Icon>
         </div>
         <div class="absolute" class:opacity-0={mode !== DARK_MODE}>
-            <Icon icon="material-symbols:dark-mode-outline-rounded" class="text-[1.25rem]"></Icon>
+            <Icon icon={iconDark} class="text-[1.25rem]"></Icon>
         </div>
         <div class="absolute" class:opacity-0={mode !== AUTO_MODE}>
-            <Icon icon="material-symbols:radio-button-partial-outline" class="text-[1.25rem]"></Icon>
+            <Icon icon={iconAuto} class="text-[1.25rem]"></Icon>
         </div>
     </button>
 
@@ -83,21 +93,21 @@ function hidePanel() {
                     class:current-theme-btn={mode === LIGHT_MODE}
                     onclick={() => switchScheme(LIGHT_MODE)}
             >
-                <Icon icon="material-symbols:wb-sunny-outline-rounded" class="text-[1.25rem] mr-3"></Icon>
+                <Icon icon={iconSunny} class="text-[1.25rem] mr-3"></Icon>
                 {i18n(I18nKey.lightMode)}
             </button>
             <button class="flex transition whitespace-nowrap items-center !justify-start w-full btn-plain scale-animation rounded-lg h-9 px-3 font-medium active:scale-95 mb-0.5"
                     class:current-theme-btn={mode === DARK_MODE}
                     onclick={() => switchScheme(DARK_MODE)}
             >
-                <Icon icon="material-symbols:dark-mode-outline-rounded" class="text-[1.25rem] mr-3"></Icon>
+                <Icon icon={iconDark} class="text-[1.25rem] mr-3"></Icon>
                 {i18n(I18nKey.darkMode)}
             </button>
             <button class="flex transition whitespace-nowrap items-center !justify-start w-full btn-plain scale-animation rounded-lg h-9 px-3 font-medium active:scale-95"
                     class:current-theme-btn={mode === AUTO_MODE}
                     onclick={() => switchScheme(AUTO_MODE)}
             >
-                <Icon icon="material-symbols:radio-button-partial-outline" class="text-[1.25rem] mr-3"></Icon>
+                <Icon icon={iconAuto} class="text-[1.25rem] mr-3"></Icon>
                 {i18n(I18nKey.systemMode)}
             </button>
         </div>

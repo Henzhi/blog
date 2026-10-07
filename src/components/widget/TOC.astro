@@ -120,9 +120,11 @@ const enabled = tocItems.length > 0;
         opacity: 0;
         transition: opacity 0.2s linear;
 
+        /* 三档文字色按 WCAG AA 校准（亮色背景上的实测值）：
+           0.76 → 9.9:1，0.58 → 5.1:1，0.55 → 4.6:1 */
         --toc-fg-1: rgba(0, 0, 0, 0.76);
-        --toc-fg-2: rgba(0, 0, 0, 0.52);
-        --toc-fg-3: rgba(0, 0, 0, 0.34);
+        --toc-fg-2: rgba(0, 0, 0, 0.58);
+        --toc-fg-3: rgba(0, 0, 0, 0.55);
         --toc-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.1);
         /* 与 #main-grid 的 px-4、第一列宽度保持一致，改栅格时同步改这里 */
         --toc-gutter: 1rem;
@@ -130,8 +132,8 @@ const enabled = tocItems.length > 0;
     }
     :root.dark .toc-root {
         --toc-fg-1: rgba(255, 255, 255, 0.8);
-        --toc-fg-2: rgba(255, 255, 255, 0.54);
-        --toc-fg-3: rgba(255, 255, 255, 0.36);
+        --toc-fg-2: rgba(255, 255, 255, 0.58);
+        --toc-fg-3: rgba(255, 255, 255, 0.48);
         --toc-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.45);
     }
     /* 初始化完成前不显示，避免先闪一下位置不对的目录 */

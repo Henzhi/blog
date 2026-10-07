@@ -26,7 +26,7 @@ const style = Astro.props.style;
     <ul class="flex flex-col">
         {categories.map((c) => (
             <li>
-                <a href={c.url} aria-label={`View all posts in the ${c.name.trim()} category`}
+                <a href={c.url} aria-label={`查看「${c.name.trim()}」分类下的全部文章`}
                    class="group flex items-baseline justify-between py-1 text-[0.9375rem] text-75 transition-colors hover:text-[var(--primary)]">
                     <span class="truncate">{c.name.trim()}</span>
                     <span class="ml-3 shrink-0 text-[0.8125rem] text-30 tabular-nums transition-colors group-hover:text-50">{c.count}</span>
