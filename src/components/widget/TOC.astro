@@ -19,12 +19,15 @@ const headings = Astro.props.headings ?? [];
  *   rail   —— 视口 ≥ 1280px（= tailwind 的 xl）：左侧固定竖栏，收起后留一枚竖排「目录」标签
  *   drawer —— 视口 < 1280px：右下角悬浮按钮 → 从左侧滑出的抽屉
  *
- * 断点必须和 `#main-grid` 的 `xl:grid-cols-[12.5rem_minmax(0,1fr)_12.5rem]` 对齐，
+ * 断点必须和 `#main-grid` 的 `xl:grid-cols-[auto_minmax(0,1fr)_12.5rem]` 对齐，
  * 而且 tailwind 的 xl 是 px 断点，所以这里也只能用 px（别改成 em，em 相对默认字号会错位）。
  *
  * 竖栏不是栅格里的元素，而是绝对定位的浮层，位置对齐到栅格的第一列
  * （容器左边缘 + #main-grid 的 px-4），宽度就等于那一列的 12.5rem。
- * 这样做的好处是目录开合不会改变栅格宽度，正文永远不会因为展开目录而位移。
+ *
+ * 第一列的宽度本身是动态的：`applyState()` 把「rail 且展开」映射成 <html> 上的
+ * `data-toc-rail`，MainGridLayout 的 `.toc-slot` 据此在 12.5rem / 0 之间切换。
+ * 于是目录收起、或这一页根本没有目录时，左侧不再留白，正文吃满，且带动画过渡。
  */
 
 const isPostRoute = Astro.url.pathname.startsWith(url("/posts/"));
@@ -282,6 +285,12 @@ const enabled = tocItems.length > 0;
     }
 
     /* ---------------- rail：左侧固定竖栏（对齐栅格第一列） ---------------- */
+    /* 收起后栅格的第一列也归零（MainGridLayout 的 .toc-slot 跟着 data-toc-rail 走），
+       竖排标签的 right 正是拿这一列算的，所以把变量一起置 0 ——
+       标签落回内容区左边缘，不会再悬在正文上面。 */
+    .toc-root[data-mode="rail"][data-open="false"] {
+        --toc-col-w: 0rem;
+    }
     .toc-root[data-mode="rail"] .toc-panel {
         position: absolute;
         top: 5.5rem;
@@ -516,6 +525,9 @@ const enabled = tocItems.length > 0;
 		}
 
 		disconnectedCallback(): void {
+			// 本页的目录没了（swup 换到无目录的页面）就把占位列收回，
+			// 否则上一页留下的 data-toc-rail 会让新页面白占一栏宽度。
+			document.documentElement.removeAttribute("data-toc-rail");
 			for (const timer of this.timers) window.clearTimeout(timer);
 			this.timers = [];
 			this.scroller?.removeEventListener("click", this.onListClick);
@@ -620,6 +632,15 @@ const enabled = tocItems.length > 0;
 			}
 			// 收起时移出可达树，键盘 Tab 不会落到屏幕外的抽屉里
 			this.panel?.toggleAttribute("inert", !this.open);
+
+			// 栅格左侧那根占位列只在「rail 且展开」时才需要宽度（见 MainGridLayout 末尾的 CSS）。
+			// 挂在 <html> 上的理由：占位列是 #main-grid 的子元素，而 #main-grid 不在 swup 的
+			// container 里、换页不会重建，属性选择器是唯一能跨换页持续生效的钩子。
+			// 用属性而不是媒体查询，断点真相仍然只有上面的 RAIL_QUERY 一处。
+			document.documentElement.toggleAttribute(
+				"data-toc-rail",
+				this.mode === "rail" && this.open,
+			);
 		}
 
 		private setOpen(open: boolean): void {

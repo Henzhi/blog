@@ -69,12 +69,12 @@ const mainPanelTop = siteConfig.banner.enable
              `-mx-2 px-2`，靠这 16px 向两侧出血做 hover 背景。移动端之前是 px-0，负边距直接溢出到视口外，
              再被 #swup-container 的 overflow-hidden 裁掉——表现就是内容贴边、右侧日期像被切了。
 
-             xl 起换成三栏 [12.5rem][正文][12.5rem]：左右等宽，正文才可能真正落在视口正中。
-             中间列 = 75rem - 32(px-4) - 200 - 48 - 48 - 200 = 672px = 42rem，正文刚好顶满上限。
-             注意这个栅格必须**跟页面无关**且**不能随目录开合变化**：
-             #main-grid 不在 swup 的 container 里（换页时不会重建），所以它只能写死；
-             而左侧那一列是常驻占位——目录收起时正文位置纹丝不动，这就是「收起仍居中」的实现方式。 -->
-        <div id="main-grid" class="transition duration-700 w-full left-0 right-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_12.5rem] xl:grid-cols-[12.5rem_minmax(0,1fr)_12.5rem]
+             xl 起换成三栏 [占位][正文][12.5rem]：左侧一列用来把正文推到视口正中。
+             展开目录时占位 12.5rem，中间列 = 75rem - 32(px-4) - 200 - 48 - 48 - 200 = 672px = 42rem。
+             注意这个栅格必须**跟页面无关**：#main-grid 不在 swup 的 container 里（换页时不会重建），
+             所以列定义只能写死——但**第一列的宽度**由 `.toc-slot` 自己控（见下方 style），
+             目录收起、或这一页压根没有目录时它是 0，正文吃满左侧空出来的位置。 -->
+        <div id="main-grid" class="transition duration-700 w-full left-0 right-0 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_12.5rem] xl:grid-cols-[auto_minmax(0,1fr)_12.5rem]
     mx-auto gap-12 px-4"
         >
             <!-- Banner image credit -->
@@ -92,9 +92,10 @@ const mainPanelTop = siteConfig.banner.enable
 
 
             <!-- 左侧占位列：xl 起撑出与右侧栏等宽的一栏，把正文推到视口正中。
-                 目录本体是固定定位的浮层（见文件底部），不坐在这一列里——
-                 所以它开合不会改变这一列的宽度，正文不会位移。 -->
-            <div class="hidden xl:block" aria-hidden="true"></div>
+                 目录本体是固定定位的浮层（见文件底部），不坐在这一列里；
+                 这一列的宽度由 .toc-slot 自己控（CSS 在文件末尾）——
+                 目录收起或本页无目录时宽度归零，正文就吃满左侧空出来的位置。 -->
+            <div class="toc-slot hidden xl:block" aria-hidden="true"></div>
 
             <main id="swup-container" class="transition-swup-fade min-w-0 overflow-hidden">
                 <div id="content-wrapper" class="onload-animation">
@@ -130,3 +131,29 @@ const mainPanelTop = siteConfig.banner.enable
     </div>
 </div>
 </Layout>
+
+<style is:global>
+    /* ---------------------------------------------------------------
+       左侧目录占位列的宽度
+       ---------------------------------------------------------------
+       栅格第一列是 auto，宽度跟着 .toc-slot 自己的 width 走。这样就不必在
+       CSS 里再写一遍 1280px 媒体查询——断点真相只有 TOC.astro 的 RAIL_QUERY
+       一处（那个常量必须等于 tailwind 的 xl = 1280px）。
+
+       TOC.astro 在 rail 模式且展开时给 <html> 挂 data-toc-rail：
+         · 挂上 → 占位 12.5rem，正文落在视口正中（与右栏对称）
+         · 没挂 → 占位 0，正文吃满左侧空出来的位置（目录收起 / 本页无目录）
+       width 的过渡让两种状态之间平滑推移，正文跟着一起动。 */
+    #main-grid > .toc-slot {
+        width: 0;
+        transition: width 0.7s;
+    }
+    :root[data-toc-rail] #main-grid > .toc-slot {
+        width: 12.5rem;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        #main-grid > .toc-slot {
+            transition-duration: 0.01ms;
+        }
+    }
+</style>

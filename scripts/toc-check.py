@@ -212,6 +212,7 @@ PROBE = """
   const items = [...document.querySelectorAll('.toc-item')];
   const art = document.getElementById('post-container');
   const grid = document.getElementById('main-grid');
+  const slot = q('.toc-slot');
   const side = document.getElementById('sidebar');
   const cs = (el) => el ? getComputedStyle(el) : null;
   const box = (el) => { if (!el) return null; const r = el.getBoundingClientRect();
@@ -238,6 +239,10 @@ PROBE = """
     vwCenter: Math.round(window.innerWidth / 2),
     artCenter: ab ? Math.round(ab.x + ab.w / 2) : null,
     gridCols: grid ? getComputedStyle(grid).gridTemplateColumns : null,
+    gridBox: box(grid),
+    // 左侧目录占位列：展开 200，收起和无目录页 0
+    slotBox: box(slot),
+    railAttr: document.documentElement.hasAttribute('data-toc-rail'),
     active: crumb ? crumb.dataset.slug : null,
     overflowX: document.documentElement.scrollWidth > window.innerWidth + 1,
     errors: window.__errs ? window.__errs.slice() : [],
@@ -340,38 +345,43 @@ def suite(page, base, deep, shallow):
     time.sleep(0.3)
 
     # ---------------- D. 折叠 / 展开 ----------------
-    print("\n=== D. 折叠与展开（含正文不位移） ===")
+    print("\n=== D. 折叠与展开（正文吃满左侧空位） ===")
     before = page.js(PROBE)
     page.js(f"({CLICK_SEL})('.toc-icon-btn')")
-    time.sleep(0.5)
+    time.sleep(1.0)  # .toc-slot 的宽度过渡是 0.7s，短于它量到的还是中间态
     c = page.js(PROBE)
     check("D1 点击后收起", c["open"] == "false")
     check("D2 面板隐藏且移出可达树", c["panelVis"] == "hidden" and c["panelInert"] is True)
     check("D3 竖排「目录」标签出现", c["tabVis"] == "visible" and c["tabBox"]["w"] > 0, str(c["tabBox"]))
     check("D4 状态写入 localStorage", page.js("localStorage.getItem('toc-collapsed')") == "1")
-    # 这一条是「收起时正文仍保持居中」的硬指标：位置和宽度一个像素都不能变
-    check("D5 收起后正文位置与宽度零位移",
-          c["articleBox"]["x"] == before["articleBox"]["x"]
-          and c["articleBox"]["w"] == before["articleBox"]["w"],
+    # 「收起后不在左边留白」的落点：栅格第一列必须真的收到 0
+    check("D5 收起后左侧占位列归零",
+          before["slotBox"]["w"] == 200 and c["slotBox"]["w"] == 0 and not c["railAttr"],
+          f"占位 {before['slotBox']['w']} -> {c['slotBox']['w']}  railAttr={c['railAttr']}")
+    # 正文跟着长宽：672（顶满 42rem）-> 768（顶满 48rem 上限）
+    check("D6 收起后正文左移并变宽",
+          c["articleBox"]["w"] == 768 and c["articleBox"]["x"] < before["articleBox"]["x"],
           f"{before['articleBox']} -> {c['articleBox']}")
-    check("D6 收起后正文仍在视口正中", abs(c["artCenter"] - c["vwCenter"]) <= 2,
-          f"正文中心={c['artCenter']} 视口中心={c['vwCenter']}")
-    # 收起后标签的右边缘应该正好落在展开时面板的右边缘上——开合之间不跳位，
-    # 两者与正文的间距都是栅格 gap(48px)
-    check("D7 标签右边缘与展开时面板右边缘对齐，且与正文同为 48px 间距",
-          c["tabBox"]["x"] + c["tabBox"]["w"] == before["panelBox"]["x"] + before["panelBox"]["w"]
-          and c["articleBox"]["x"] - (c["tabBox"]["x"] + c["tabBox"]["w"]) == 48,
-          f"标签右={c['tabBox']['x'] + c['tabBox']['w']} 面板右={before['panelBox']['x'] + before['panelBox']['w']} "
-          f"间距={c['articleBox']['x'] - (c['tabBox']['x'] + c['tabBox']['w'])}px")
+    # 左移量可推导：让出 12.5rem(200) 的栏，但 48rem 上限在 872 的栏里居中又让回 (872-768)/2=52
+    # 200 - 52 = 148
+    check("D7 正文左移量与几何推导一致（148px）",
+          before["articleBox"]["x"] - c["articleBox"]["x"] == 148,
+          f"左移={before['articleBox']['x'] - c['articleBox']['x']}px")
+    # 标签跟着占位列一起收：落到内容区左边缘，也就是展开时面板的左边缘，
+    # 否则它会停在原来的 12.5rem 处、悬在正文上面
+    check("D8 收起后标签落到内容区左边缘，不再悬在正文上",
+          c["tabBox"]["x"] + c["tabBox"]["w"] == before["panelBox"]["x"],
+          f"标签右={c['tabBox']['x'] + c['tabBox']['w']} 面板左={before['panelBox']['x']}")
     page.shot("03-rail-collapsed.png")
     page.js(f"({CLICK_SEL})('.toc-tab')")
-    time.sleep(0.5)
+    time.sleep(1.0)
     e = page.js(PROBE)
-    check("D8 点标签可重新展开", e["open"] == "true")
-    check("D9 重新展开后正文回到原位",
+    check("D9 点标签可重新展开", e["open"] == "true")
+    check("D10 重新展开后正文与占位列都回到原位",
           e["articleBox"]["x"] == before["articleBox"]["x"]
-          and e["articleBox"]["w"] == before["articleBox"]["w"],
-          f"{before['articleBox']} -> {e['articleBox']}")
+          and e["articleBox"]["w"] == before["articleBox"]["w"]
+          and e["slotBox"]["w"] == 200,
+          f"{before['articleBox']} -> {e['articleBox']} 占位={e['slotBox']['w']}")
 
     # ---------------- E. swup 换页 ----------------
     print("\n=== E. swup 无刷新换页 ===")
@@ -528,7 +538,7 @@ def suite(page, base, deep, shallow):
     page.shot("09-home-to-post.png")
 
     # ---------------- N. 多宽度自查 ----------------
-    print("\n=== N. 各屏幕宽度下的模式 / 居中 / 溢出 ===")
+    print("\n=== N. 各屏幕宽度下的模式 / 宽度 / 溢出 ===")
     rows = []
     for w, h in ((1920, 1080), (1600, 1000), (1440, 900), (1280, 800),
                  (1279, 800), (1024, 800), (768, 1024), (390, 844)):
@@ -546,22 +556,49 @@ def suite(page, base, deep, shallow):
               f"mode={n['mode']}")
         check(f"N {w}px 无横向溢出", not n["overflowX"])
         if w >= 1280:
-            check(f"N {w}px 正文居中（偏差 ≤2px）", drift is not None and drift <= 2, f"偏差={drift}")
-            check(f"N {w}px 正文顶满 42rem", art["w"] == 672, f"w={art['w']}")
+            check(f"N {w}px 展开态正文居中（偏差 ≤2px）", drift is not None and drift <= 2, f"偏差={drift}")
+            check(f"N {w}px 展开态正文顶满 42rem", art["w"] == 672, f"w={art['w']}")
+            check(f"N {w}px 展开态保留 12.5rem 占位列", n["slotBox"]["w"] == 200,
+                  f"占位={n['slotBox']['w']}")
         else:
             check(f"N {w}px 正文未被压缩到不可读（≥320px）", art["w"] >= 320, f"w={art['w']}")
-    # 栅格是写死在 #main-grid 上的（它不在 swup 的 container 里，换页不会重建），
-    # 所以列表页也必须是三栏——否则从列表页点进文章，正文会停在两栏的位置不回正
+            check(f"N {w}px 无目录占位列", not n["slotBox"] or n["slotBox"]["w"] == 0,
+                  f"占位={n['slotBox']}")
+            # xl 以下不该放宽：1024px 屏的中栏只有 744，放 48rem 会把正文撑到 744
+            check(f"N {w}px 正文仍按 42rem 基准，未被放宽", art["w"] <= 672, f"w={art['w']}")
+
+    # 收起态：正文放宽到 48rem，且不出现横向溢出（1280 是最紧的一档）
+    print("       — 收起态 —")
+    for w in (1280, 1680):
+        page.viewport(w, 1000)
+        page.goto(deep, settle=1.0)
+        page.js(f"({CLICK_SEL})('.toc-icon-btn')")
+        time.sleep(1.0)
+        n2 = page.js(PROBE)
+        print(f"       {w:>4}px 收起  正文宽={n2['articleBox']['w']}  "
+              f"占位={n2['slotBox']['w']}  overflow={n2['overflowX']}")
+        check(f"N {w}px 收起后正文放宽到 48rem", n2["articleBox"]["w"] == 768,
+              f"w={n2['articleBox']['w']}")
+        check(f"N {w}px 收起后无横向溢出", not n2["overflowX"])
+    page.js("localStorage.removeItem('toc-collapsed'); 1")
+
+    # 栅格列定义是写死的（#main-grid 不在 swup 的 container 里，换页不会重建），
+    # 所以列表页也必须是三栏——否则从列表页点进文章，正文会停在两栏的位置不回正。
+    # 但列表页没有目录，占位列该收到 0，主栏吃满：1168 - 48 - 200 - 48 = 872
     page.viewport(1680, 1000)
     page.goto(f"{base}/")
     cols = page.js(
         "getComputedStyle(document.getElementById('main-grid'))"
         ".gridTemplateColumns.split(' ').length")
     check("N 首页同样拿到三栏栅格（换页不会错位）", cols == 3, f"列数={cols}")
+    home = page.js(PROBE)
+    check("N 首页无目录 → 占位列归零",
+          (not home["slotBox"] or home["slotBox"]["w"] == 0) and not home["railAttr"],
+          f"占位={home['slotBox']} railAttr={home['railAttr']}")
     main_w = page.js(
         "Math.round(document.getElementById('swup-container').getBoundingClientRect().width)")
-    check("N 首页主栏宽度与文章页一致（672）", main_w == 672, f"main宽={main_w}")
-    page.shot("10-home-three-col.png")
+    check("N 首页主栏吃满 872（= 1168 - 48 - 200 - 48）", main_w == 872, f"main宽={main_w}")
+    page.shot("10-home-full-width.png")
 
 
 def main():

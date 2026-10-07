@@ -51,9 +51,13 @@ const jsonLd = {
 <MainGridLayout banner={entry.data.image} title={entry.data.title} description={entry.data.description} lang={entry.data.lang} setOGTypeArticle={true} headings={headings}>
     <script is:inline slot="head" type="application/ld+json" set:html={JSON.stringify(jsonLd)}></script>
 
-    <!-- 正文栏：42rem 行长上限，无卡片容器，排版即结构。
-         xl 下中间列正好 42rem，mx-auto 是兜底（默认字号被调大、或 lg~xl 之间中列更宽时保持居中） -->
-    <article id="post-container" class="max-w-[42rem] mx-auto">
+    <!-- 正文栏：行长上限，无卡片容器，排版即结构。
+         42rem 是基准；xl 起放宽到 48rem，但**只在目录收起时才真正起作用**：
+           目录展开 → xl 中列 672px(=42rem)，上限都没到，正文顶满，行长与以前一致；
+           目录收起 → xl 中列 872px，48rem 生效，正文 768px 居中，左右各留 52px。
+         xl 以下不加宽（lg~xl 之间中列 744px，放宽会把 1024px 屏的正文撑到 744）。
+         mx-auto 是兜底：默认字号被调大、或列宽大于上限时正文保持居中。 -->
+    <article id="post-container" class="max-w-[42rem] xl:max-w-[48rem] mx-auto">
         <!-- title -->
         <h1 data-pagefind-body data-pagefind-weight="10" data-pagefind-meta="title"
             class="onload-animation text-[length:var(--text-h1)] leading-[1.25] font-semibold tracking-tight text-black/90 dark:text-white/90 mb-3">
