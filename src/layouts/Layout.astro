@@ -278,6 +278,10 @@ const bannerEnabled = !!document.getElementById('banner-wrapper')
 function setClickOutsideToClose(panel: string, ignores: string[]) {
 	document.addEventListener("click", event => {
 		let panelDom = document.getElementById(panel);
+		// 面板可能压根没渲染 —— 例如主题色锁定（siteConfig.themeColor.fixed）时
+		// 不再挂载 DisplaySettings，DOM 里就没有 #display-setting。
+		// 原来的 `panelDom!` 非空断言会在这里抛 TypeError，且每次点击都抛一次。
+		if (!panelDom) return;
 		let tDom = event.target;
 		if (!(tDom instanceof Node)) return;		// Ensure the event target is an HTML Node
 		for (let ig of ignores) {
@@ -286,7 +290,7 @@ function setClickOutsideToClose(panel: string, ignores: string[]) {
 				return;
 			}
 		}
-		panelDom!.classList.add("float-panel-closed");
+		panelDom.classList.add("float-panel-closed");
 	});
 }
 setClickOutsideToClose("display-setting", ["display-setting", "display-settings-switch"])
