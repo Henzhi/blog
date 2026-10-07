@@ -568,15 +568,18 @@ def suite(page, base, deep, shallow):
             check(f"N {w}px 正文仍按 42rem 基准，未被放宽", art["w"] <= 672, f"w={art['w']}")
 
     # 收起态：正文放宽到 48rem，且不出现横向溢出（1280 是最紧的一档）
+    # 每轮先清掉偏好，否则上一轮写进 localStorage 的 collapsed 会让这一轮
+    # 一进来就是收起态，再点一下反而变成展开
     print("       — 收起态 —")
     for w in (1280, 1680):
+        page.js("localStorage.removeItem('toc-collapsed'); 1")
         page.viewport(w, 1000)
         page.goto(deep, settle=1.0)
         page.js(f"({CLICK_SEL})('.toc-icon-btn')")
         time.sleep(1.0)
         n2 = page.js(PROBE)
         print(f"       {w:>4}px 收起  正文宽={n2['articleBox']['w']}  "
-              f"占位={n2['slotBox']['w']}  overflow={n2['overflowX']}")
+              f"占位={n2['slotBox']['w']}  open={n2['open']}  overflow={n2['overflowX']}")
         check(f"N {w}px 收起后正文放宽到 48rem", n2["articleBox"]["w"] == 768,
               f"w={n2['articleBox']['w']}")
         check(f"N {w}px 收起后无横向溢出", not n2["overflowX"])
