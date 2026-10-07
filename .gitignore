@@ -31,3 +31,7 @@ yarn.lock
 # ide
 .idea
 *.iml
+
+# python
+__pycache__/
+*.pyc
