@@ -63,15 +63,20 @@ onMount(async () => {
 });
 </script>
 
-<!-- stephango 式年份密排：等宽「年 · 月」前缀 + 标题，一行一条 -->
+<!-- 桌面保持年份密排；移动改为日期在上、标题最多两行，避免省略文章主题。 -->
 <div>
+    <header class="mb-5 flex items-baseline justify-between gap-4 md:mb-6">
+        <h1 class="text-[1.5rem] md:text-[2rem] leading-tight font-semibold tracking-tight text-black/90 dark:text-white/90">归档</h1>
+        <span class="text-[0.875rem] md:text-[0.8125rem] text-30 tabular-nums" aria-live="polite">{filteredPosts.length} 篇</span>
+    </header>
+
     {#if activeFilters.length > 0}
-        <div class="mb-6 flex flex-wrap items-center gap-2 text-[0.8125rem] text-50">
+        <div class="mb-6 flex flex-wrap items-center gap-2 text-[0.875rem] md:text-[0.8125rem] text-50">
             <span>筛选：</span>
             {#each activeFilters as filter}
-                <span class="inline-flex items-center h-6 px-2 rounded-md border border-[var(--border-subtle)] text-75">{filter}</span>
+                <span class="inline-flex items-center min-h-7 px-2 rounded-md border border-[var(--border-subtle)] text-75">{filter}</span>
             {/each}
-            <a href="./" class="ml-1 transition-colors hover:text-[var(--primary)]">清除 ×</a>
+            <a href="./" class="inline-flex items-center min-h-8 ml-1 transition-colors hover:text-[var(--primary)]">清除 ×</a>
         </div>
     {/if}
 
@@ -79,13 +84,13 @@ onMount(async () => {
         <a
                 href={getPostUrlBySlug(post.slug)}
                 aria-label={post.data.title}
-                class="group flex items-baseline gap-4 py-2.5 -mx-2 px-2 rounded-lg transition-colors hover:bg-[var(--btn-plain-bg-hover)]"
+                class="group flex flex-col gap-1 py-3 -mx-2 px-2 rounded-lg transition-colors hover:bg-[var(--btn-plain-bg-hover)] sm:flex-row sm:items-baseline sm:gap-4 sm:py-2.5"
                 style="border-bottom: 0.5px solid var(--border-subtle)"
         >
-            <span class="shrink-0 w-[5.5rem] font-mono text-[0.8125rem] tabular-nums text-30">
+            <span class="shrink-0 sm:w-[5.5rem] font-mono text-[0.875rem] md:text-[0.8125rem] tabular-nums text-30">
                 {formatYearMonth(post.data.published)}
             </span>
-            <span class="min-w-0 truncate text-[0.9375rem] text-black/90 dark:text-white/90 transition-colors group-hover:text-[var(--primary)]">
+            <span class="min-w-0 line-clamp-2 sm:line-clamp-none sm:truncate text-[1rem] leading-relaxed md:text-[0.9375rem] text-black/90 dark:text-white/90 transition-colors group-hover:text-[var(--primary)]">
                 {post.data.title}
             </span>
             <span class="ml-auto hidden md:block shrink-0 max-w-[12rem] truncate text-[0.8125rem] text-30">

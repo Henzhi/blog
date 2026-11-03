@@ -1,5 +1,6 @@
 ---
 import type { MarkdownHeading } from "astro";
+import { pathsEqual, url } from "../../utils/url-utils";
 import Categories from "./Categories.astro";
 import RecentPosts from "./RecentPosts.astro";
 import Tag from "./Tags.astro";
@@ -10,12 +11,39 @@ interface Props {
 }
 
 const className = Astro.props.class;
+const hideRecentPosts =
+	pathsEqual(Astro.url.pathname, url("/")) ||
+	pathsEqual(Astro.url.pathname, url("/archive/"));
 ---
 <aside id="sidebar" class:list={[className, "w-full lg:w-[12.5rem]"]}>
     <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-10 top-4 sticky">
         <!-- 分类放最前：这个站就是按三个方向组织的，访客第一眼该看到它 -->
         <Categories class="onload-animation" style="animation-delay: 150ms"></Categories>
-        <RecentPosts class="onload-animation" style="animation-delay: 200ms"></RecentPosts>
+        <div id="recent-posts-slot" class:list={[{ hidden: hideRecentPosts }]}>
+            <RecentPosts class="onload-animation" style="animation-delay: 200ms"></RecentPosts>
+        </div>
         <Tag class="onload-animation" style="animation-delay: 250ms"></Tag>
     </div>
 </aside>
+
+<script>
+import { pathsEqual, url } from "../../utils/url-utils";
+
+function syncRecentPosts() {
+    const slot = document.getElementById("recent-posts-slot");
+    if (!slot) return;
+    const hidden =
+        pathsEqual(window.location.pathname, url("/")) ||
+        pathsEqual(window.location.pathname, url("/archive/"));
+    slot.classList.toggle("hidden", hidden);
+}
+
+// 侧栏不在 swup 的替换容器里，换页时必须按新 URL 主动同步。
+syncRecentPosts();
+const setup = () => window.swup.hooks.on("page:view", syncRecentPosts);
+if (window.swup) {
+    setup();
+} else {
+    document.addEventListener("swup:enable", setup, { once: true });
+}
+</script>

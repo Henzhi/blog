@@ -28,29 +28,34 @@ const excerpt = description || remarkPluginFrontmatter.excerpt;
 <!-- 密排列表项：标题+日期两列，摘要与标签靠排版分层，不用卡片容器 -->
 <article class:list={["post-list-item", className]} style={style}>
     <a href={url} class="group block py-5 -mx-2 px-2 rounded-lg transition-colors hover:bg-[var(--btn-plain-bg-hover)]">
-        <div class="flex items-baseline justify-between gap-4">
-            <h2 class="min-w-0 text-[1.125rem] leading-snug font-medium text-black/90 dark:text-white/90 transition-colors group-hover:text-[var(--primary)]">
+        <div class="sm:flex sm:items-baseline sm:justify-between sm:gap-4">
+            <h2 class="min-w-0 text-[1.25rem] md:text-[1.1875rem] leading-[1.45] font-semibold tracking-[-0.01em] [text-wrap:balance] text-black/90 dark:text-white/90 transition-colors group-hover:text-[var(--primary)]">
                 {title}
             </h2>
-            <time class="shrink-0 font-mono text-[0.8125rem] tabular-nums text-30">
+            <time class="hidden sm:block shrink-0 font-mono text-[0.8125rem] tabular-nums text-30">
                 {formatDateToYYYYMMDD(published)}
             </time>
         </div>
 
         {excerpt && (
-            <p class="mt-1.5 text-[0.9375rem] leading-relaxed text-50 line-clamp-2">
+            <p class="mt-1.5 max-w-[44rem] text-[1rem] leading-[1.75] md:text-[0.9375rem] md:leading-relaxed text-50 line-clamp-2">
                 {excerpt}
             </p>
         )}
 
-        <div class="mt-2 flex items-baseline justify-between gap-4 text-[0.8125rem] text-30">
-            <div class="min-w-0 truncate">
+        <div class="mt-2 flex items-baseline justify-between gap-4 text-[0.875rem] md:text-[0.8125rem] text-30">
+            <div class="hidden sm:block min-w-0 truncate">
                 {tags.map((t) => t.trim()).join(" · ")}
             </div>
-            <div class="shrink-0 tabular-nums">
-                {remarkPluginFrontmatter.words} {i18n(remarkPluginFrontmatter.words === 1 ? I18nKey.wordCount : I18nKey.wordsCount)}
-                {" · "}
-                {remarkPluginFrontmatter.minutes} {i18n(remarkPluginFrontmatter.minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
+            <div class="flex w-full items-baseline justify-between sm:block sm:w-auto shrink-0 tabular-nums">
+                <time class="sm:hidden font-mono">
+                    {formatDateToYYYYMMDD(published)}
+                </time>
+                <span>
+                    {remarkPluginFrontmatter.words} {i18n(remarkPluginFrontmatter.words === 1 ? I18nKey.wordCount : I18nKey.wordsCount)}
+                    {" · "}
+                    {remarkPluginFrontmatter.minutes} {i18n(remarkPluginFrontmatter.minutes === 1 ? I18nKey.minuteCount : I18nKey.minutesCount)}
+                </span>
             </div>
         </div>
     </a>

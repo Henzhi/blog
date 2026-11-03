@@ -1,6 +1,22 @@
 .expressive-code {
+    max-width: 100%;
+    min-width: 0;
+
     .frame {
         @apply !shadow-none;
+        max-width: 100%;
+        min-width: 0;
+    }
+
+    /* 长行只在代码区内部滚动，不把正文或整页撑宽。
+       保留 Expressive Code 的换行配置，不在全局强制 white-space。 */
+    pre {
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-bg) transparent;
     }
 
     .title {

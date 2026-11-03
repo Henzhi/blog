@@ -1,8 +1,16 @@
 /* .prose 也是单类选择器，用 .custom-md.prose 双类压住 typography 插件的默认字号 */
 .custom-md.prose {
-    /* 中文长文阅读体：18px / 1.75，字重只留 400/500/600 */
-    font-size: var(--text-body);
-    line-height: 1.75;
+    /* 移动根字号为 14px：1.1875rem ≈ 16.6px，避免正文随根字号缩到 15.75px。 */
+    font-size: 1.1875rem;
+    line-height: 1.8;
+}
+
+@media (min-width: 768px) {
+    .custom-md.prose {
+        /* 桌面中文长文阅读体：18px / 1.75，保持原有体验。 */
+        font-size: var(--text-body);
+        line-height: 1.75;
+    }
 }
 
 .custom-md {
@@ -146,9 +154,39 @@
 
     }
 
+    /* 表格：滚动交给渲染后注入的 wrapper，表格本身保持原生 table 布局。
+       不用 display:block 直接改表格盒模型，避免表头/表体宽度分离。 */
+    .table-scroll {
+        max-width: 100%;
+        margin: 1.5rem 0;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-bg) transparent;
+        border-radius: var(--radius-sm);
+
+        &:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 4px;
+        }
+
+        table {
+            display: table;
+            width: max-content;
+            min-width: 100%;
+            margin: 0;
+        }
+    }
+
     /* 表格：去外框，只留行间细分隔线 */
     table {
         @apply w-full;
+        /* JS 注入 wrapper 前的兜底：表格自己也能滚动，不会被正文裁掉。 */
+        display: block;
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
         border-collapse: collapse;
         font-size: var(--text-small);
 
