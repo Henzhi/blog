@@ -16,7 +16,7 @@ function stripInvalidXmlChars(str: string): string {
 	);
 }
 
-export async function GET(context: APIContext) {
+export async function GET(context: APIContext): Promise<Response> {
 	const blog = await getSortedPosts();
 
 	// context.site 只含 origin（如 https://henzhi.github.io/），不含 base。

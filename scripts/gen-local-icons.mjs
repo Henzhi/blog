@@ -95,8 +95,16 @@ function render(icons) {
 		"\trotate?: number;",
 		"}",
 		"",
-		"export const localIcons = {",
+		"type LocalIconKey =",
 	];
+	const iconKeys = Object.keys(icons);
+	for (const [index, key] of iconKeys.entries()) {
+		lines.push(`\t| ${JSON.stringify(key)}${index === iconKeys.length - 1 ? ";" : ""}`);
+	}
+	lines.push("");
+	lines.push(
+		"export const localIcons: Readonly<Record<LocalIconKey, LocalIcon>> = {",
+	);
 	for (const [key, value] of Object.entries(icons)) {
 		lines.push(`\t${JSON.stringify(key)}: ${JSON.stringify(value)},`);
 	}
