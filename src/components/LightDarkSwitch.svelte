@@ -75,7 +75,7 @@ function hidePanel() {
 
 <!-- z-50 make the panel higher than other float panels -->
 <div class="relative z-50" role="menu" tabindex="-1" onmouseleave={hidePanel}>
-    <button aria-label="切换亮色 / 暗色 / 跟随系统" role="menuitem" class="relative btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="scheme-switch" onclick={toggleScheme} onmouseenter={showPanel}>
+    <button aria-label="切换亮色 / 暗色 / 跟随系统" role="menuitem" class="relative btn-plain scale-animation rounded-full h-10 w-10 active:scale-90" id="scheme-switch" onclick={toggleScheme} onmouseenter={showPanel}>
         <div class="absolute" class:opacity-0={mode !== LIGHT_MODE}>
             <Icon icon={iconSunny} class="text-[1.25rem]"></Icon>
         </div>

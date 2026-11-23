@@ -38,16 +38,17 @@ const hasBannerLink = !!siteConfig.banner.credit.url;
 
 const mainPanelTop = siteConfig.banner.enable
 	? `calc(${BANNER_HEIGHT}vh - ${MAIN_PANEL_OVERLAPS_BANNER_HEIGHT}rem)`
-	: "5.5rem";
+	: "6rem";
 ---
 
 <Layout title={title} banner={banner} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle}>
 
 <!-- Navbar -->
 <slot slot="head" name="head"></slot>
-<!-- 这里不再额外加 px-4：Navbar 自己已经有 px-4，两层叠加会让桌面端 logo 比正文多缩进 16px。
-     gutter 只在 Navbar 内部定义一次，与 #main-grid 的 px-4 对齐。 -->
-<div id="top-row" class="z-50 pointer-events-none relative transition-all duration-700 max-w-[var(--page-width)] px-0 mx-auto" class:list={[""]}>
+<!-- Navbar 自身是浮动胶囊：外层只给视口两侧留出间隙（移动端 8px，≥sm 16px）。
+     胶囊边界与 #main-grid 的内容边界对齐；胶囊内部不再加整体横向 padding，
+     品牌按钮和右侧控件各自带 padding，保证导航第一条 gutter 与目录列同源。 -->
+<div id="top-row" class="z-50 pointer-events-none relative transition-all duration-700 max-w-[var(--page-width)] px-2 sm:px-4 mx-auto" class:list={[""]}>
     <div id="navbar-wrapper" class="pointer-events-auto sticky top-0 transition-all">
         <Navbar></Navbar>
     </div>

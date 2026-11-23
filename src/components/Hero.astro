@@ -1,54 +1,168 @@
 ---
+import { Icon } from "astro-icon/components";
 import { profileConfig } from "../config";
-import { url } from "../utils/url-utils";
+import { categoryDefs } from "../data/categories";
+import { getCategoryUrl, url } from "../utils/url-utils";
 
-// Default 档：三句话以内，说清「这儿写什么」
+// 保留原有介绍语气：这里不是简历，也不追热点。
 const shortBio =
 	"写点日常生活，整理学习笔记，也把折腾过的东西写成能照着做的教程。";
-// Long 档：补充写东西的态度，给愿意深读的人
 const longBio =
 	"这里不做选题规划，也不追热点——想清楚了就写，写完就算是给自己存了一份档。技术上的折腾、读过的东西、日常里那些值得记一笔的事，都放在这儿。";
+const categoryIcons = [
+	"material-symbols:wb-sunny-outline-rounded",
+	"material-symbols:book-2-outline-rounded",
+	"material-symbols:code-rounded",
+];
 ---
 
-<hero-section class="block pt-10 pb-12 md:pt-14 md:pb-16">
-    <div class="flex items-center gap-4 md:gap-5">
-        <!-- GitHub 头像（外链，跟随 GitHub 资料自动更新） -->
-        <img src={profileConfig.avatar} alt={`${profileConfig.name} 的 GitHub 头像`}
-             width="64" height="64" loading="eager" decoding="async"
-             class="shrink-0 w-14 h-14 md:w-16 md:h-16 rounded-full object-cover select-none" />
-        <div class="min-w-0">
-            <h1 class="text-[length:var(--text-hero)] leading-[1.1] font-semibold text-black/90 dark:text-white/90 tracking-tight">
-                {profileConfig.name}
-            </h1>
-            <div class="mt-1 text-[0.9375rem] text-50">
-                生活记录 · 学习笔记 · 教程笔记
+<hero-section class="hero-card block relative overflow-hidden onload-animation">
+    <div class="hero-orb hero-orb-blue" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-rose" aria-hidden="true"></div>
+    <div class="hero-grid" aria-hidden="true"></div>
+
+    <div class="relative p-6 sm:p-8 md:p-10">
+        <div class="page-kicker">PERSONAL NOTES</div>
+
+        <div class="mt-6 flex items-center gap-4 md:gap-5">
+            <div class="avatar-ring shrink-0">
+                <img src={profileConfig.avatar} alt={`${profileConfig.name} 的 GitHub 头像`}
+                     width="80" height="80" loading="eager" decoding="async"
+                     class="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover select-none bg-[var(--card-solid)]" />
+            </div>
+            <div class="min-w-0">
+                <div class="flex items-center gap-3">
+                    <h1 class="text-[length:var(--text-hero)] leading-[1.05] font-semibold text-black/90 dark:text-white/95 tracking-[-0.045em]">
+                        {profileConfig.name}
+                    </h1>
+                    <a href="https://github.com/Henzhi" target="_blank" rel="me noopener" aria-label="访问 Henzhi 的 GitHub"
+                       class="hidden sm:inline-flex items-center justify-center w-9 h-9 rounded-full text-50 bg-[var(--card-bg)] border border-[var(--border-subtle)] hover:text-[var(--primary)] hover:-translate-y-0.5">
+                        <Icon name="fa6-brands:github" class="text-lg" />
+                    </a>
+                </div>
+                <p class="mt-2 text-[0.9375rem] md:text-base text-50">
+                    生活记录 · 学习笔记 · 教程笔记
+                </p>
             </div>
         </div>
-    </div>
 
-    <div class="mt-6 max-w-[42rem]">
-        <p class="bio-short text-[length:var(--text-body)] leading-[1.75] text-black/80 dark:text-white/80">
-            {shortBio}
-        </p>
-        <p class="bio-long hidden text-[length:var(--text-body)] leading-[1.75] text-black/80 dark:text-white/80">
-            {shortBio}{longBio}
-        </p>
-        <button class="bio-toggle mt-2 text-[0.8125rem] text-30 transition-colors hover:text-[var(--primary)]">
-            <span class="bio-toggle-label">展开完整简介 ↓</span>
-        </button>
-    </div>
+        <div class="mt-6 max-w-[42rem]">
+            <p class="bio-short text-[length:var(--text-body)] leading-[1.8] text-black/75 dark:text-white/75">
+                {shortBio}
+            </p>
+            <p id="hero-long-bio" class="bio-long hidden text-[length:var(--text-body)] leading-[1.8] text-black/75 dark:text-white/75">
+                {shortBio}{longBio}
+            </p>
+            <button type="button" class="bio-toggle mt-2 inline-flex items-center gap-1 min-h-8 text-[0.875rem] font-medium text-[var(--primary)] hover:text-[var(--rose)]"
+                    aria-expanded="false" aria-controls="hero-long-bio">
+                <span class="bio-toggle-label">展开完整简介</span>
+                <Icon name="material-symbols:keyboard-arrow-down-rounded" class="bio-toggle-icon text-lg" />
+            </button>
+        </div>
 
-    <div class="mt-8 flex flex-wrap gap-3">
-        <a href={url('/categories/')}
-           class="btn-regular rounded-lg h-10 px-5 text-[0.9375rem] font-medium active:scale-95">
-            按分类浏览 →
-        </a>
-        <a href={url('/archive/')}
-           class="btn-plain rounded-lg h-10 px-5 text-[0.9375rem] font-medium border border-[var(--border-subtle)] active:scale-95">
-            读文章 →
-        </a>
+        <div class="mt-6 flex flex-wrap gap-3">
+            <a href="#latest" class="hero-primary-btn inline-flex items-center justify-center gap-2 rounded-full h-11 px-5 text-[0.9375rem] font-semibold text-white active:scale-[0.98]">
+                开始阅读
+                <Icon name="material-symbols:arrow-downward-rounded" class="text-lg" />
+            </a>
+            <a href={url('/archive/')}
+               class="inline-flex items-center justify-center gap-2 rounded-full h-11 px-5 text-[0.9375rem] font-medium text-75 bg-[var(--card-bg)] border border-[var(--border-subtle)] hover:border-[var(--primary)] hover:text-[var(--primary)] active:scale-[0.98]">
+                全部文章
+                <Icon name="material-symbols:arrow-right-alt-rounded" class="text-lg" />
+            </a>
+        </div>
+
+        <nav aria-label="按内容方向浏览" class="mt-6 pt-5 grid grid-cols-3 gap-2.5 sm:gap-3 border-t border-[var(--border-subtle)]">
+            {categoryDefs.map((category, index) => (
+                <a href={getCategoryUrl(category.name)} class="hero-category group flex flex-col sm:flex-row items-center gap-2 sm:gap-3 min-w-0 rounded-2xl px-2.5 py-3 sm:px-4 sm:py-3.5 bg-[var(--card-bg)] border border-[var(--border-subtle)]">
+                    <span class:list={["flex items-center justify-center shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-xl", index === 1 ? "bg-[var(--rose-soft)] text-[var(--rose)]" : "bg-[var(--primary-soft)] text-[var(--primary)]"]}>
+                        <Icon name={categoryIcons[index]} class="text-lg sm:text-xl" />
+                    </span>
+                    <span class="min-w-0 text-center sm:text-left">
+                        <span class="block text-[0.875rem] sm:text-[0.9375rem] font-semibold text-90 group-hover:text-[var(--primary)] truncate">{category.name}</span>
+                        <span class="hidden sm:block mt-0.5 text-[0.75rem] text-30 truncate">{index === 0 ? "日常与想法" : index === 1 ? "理解与复盘" : "实践与踩坑"}</span>
+                    </span>
+                    <Icon name="material-symbols:arrow-outward-rounded" class="hidden sm:block ml-auto shrink-0 text-30 group-hover:text-[var(--primary)] group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
+            ))}
+        </nav>
     </div>
 </hero-section>
+
+<style>
+    .hero-card {
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-xl);
+        background:
+            linear-gradient(125deg, var(--card-solid) 12%, var(--primary-soft) 58%, var(--rose-soft) 100%);
+        box-shadow: var(--shadow-card);
+        isolation: isolate;
+    }
+
+    .hero-grid {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        opacity: 0.18;
+        background-image:
+            linear-gradient(var(--border-subtle) 1px, transparent 1px),
+            linear-gradient(90deg, var(--border-subtle) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: linear-gradient(to bottom left, black, transparent 68%);
+    }
+
+    .hero-orb {
+        position: absolute;
+        z-index: -1;
+        border-radius: 999px;
+        filter: blur(2px);
+        pointer-events: none;
+        animation: hero-float 9s ease-in-out infinite alternate;
+    }
+    .hero-orb-blue {
+        width: 13rem;
+        height: 13rem;
+        right: -4rem;
+        top: -5rem;
+        background: var(--ambient-blue);
+    }
+    .hero-orb-rose {
+        width: 9rem;
+        height: 9rem;
+        right: 16%;
+        bottom: -5rem;
+        background: var(--ambient-rose);
+        animation-delay: -3s;
+    }
+    .avatar-ring {
+        padding: 4px;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary), var(--rose));
+        box-shadow: 0 8px 24px -12px var(--primary);
+    }
+    .hero-primary-btn {
+        background: linear-gradient(110deg, var(--primary), var(--rose));
+        box-shadow: 0 10px 24px -12px var(--primary);
+    }
+    .hero-primary-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px -12px var(--primary);
+    }
+    .hero-category {
+        transition: transform 250ms var(--ease-out), border-color 250ms, box-shadow 250ms;
+    }
+    .hero-category:hover {
+        transform: translateY(-2px);
+        border-color: var(--link-underline);
+        box-shadow: var(--shadow-card);
+    }
+    .bio-toggle[aria-expanded="true"] .bio-toggle-icon {
+        transform: rotate(180deg);
+    }
+    @keyframes hero-float {
+        to { transform: translate3d(0, 10px, 0) scale(1.04); }
+    }
+</style>
 
 <script>
     class HeroSection extends HTMLElement {
@@ -63,7 +177,8 @@ const longBio =
                 expanded = !expanded;
                 short?.classList.toggle('hidden', expanded);
                 long?.classList.toggle('hidden', !expanded);
-                if (label) label.textContent = expanded ? '收起 ↑' : '展开完整简介 ↓';
+                btn.setAttribute('aria-expanded', String(expanded));
+                if (label) label.textContent = expanded ? '收起简介' : '展开完整简介';
             });
         }
     }

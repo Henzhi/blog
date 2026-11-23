@@ -1,6 +1,5 @@
 <script lang="ts">
 import { onMount } from "svelte";
-
 import { getPostUrlBySlug } from "../utils/url-utils";
 
 // 这两个值实际由组件自己从 URL 查询参数解析（见下方 params），给默认值让它们成为可选 props，
@@ -64,42 +63,48 @@ onMount(async () => {
 </script>
 
 <!-- 桌面保持年份密排；移动改为日期在上、标题最多两行，避免省略文章主题。 -->
-<div>
-    <header class="mb-5 flex items-baseline justify-between gap-4 md:mb-6">
-        <h1 class="text-[1.5rem] md:text-[2rem] leading-tight font-semibold tracking-tight text-black/90 dark:text-white/90">归档</h1>
-        <span class="text-[0.875rem] md:text-[0.8125rem] text-30 tabular-nums" aria-live="polite">{filteredPosts.length} 篇</span>
-    </header>
+<div class="content-card onload-animation">
+    <div class="p-5 sm:p-7">
+        <header class="mb-5 flex items-baseline justify-between gap-4 md:mb-6">
+            <div>
+                <div class="page-kicker">ARCHIVE</div>
+                <h1 class="mt-2 text-[1.75rem] md:text-[2rem] leading-tight font-semibold tracking-[-0.03em] text-black/90 dark:text-white/95">归档</h1>
+            </div>
+            <span class="text-[0.875rem] md:text-[0.8125rem] text-30 tabular-nums" aria-live="polite">{filteredPosts.length} 篇</span>
+        </header>
 
-    {#if activeFilters.length > 0}
-        <div class="mb-6 flex flex-wrap items-center gap-2 text-[0.875rem] md:text-[0.8125rem] text-50">
-            <span>筛选：</span>
-            {#each activeFilters as filter}
-                <span class="inline-flex items-center min-h-7 px-2 rounded-md border border-[var(--border-subtle)] text-75">{filter}</span>
+        {#if activeFilters.length > 0}
+            <div class="mb-6 flex flex-wrap items-center gap-2 text-[0.8125rem] text-50">
+                <span>筛选：</span>
+                {#each activeFilters as filter}
+                    <span class="inline-flex items-center min-h-8 px-3 rounded-full text-75 bg-[var(--primary-soft)]">{filter}</span>
+                {/each}
+                <a href="./" class="inline-flex items-center min-h-9 px-3 rounded-full transition-colors hover:text-[var(--primary)] border border-[var(--border-subtle)]">清除 ×</a>
+            </div>
+        {/if}
+
+        <div class="flex flex-col">
+            {#each filteredPosts as post (post.slug)}
+                <a
+                        href={getPostUrlBySlug(post.slug)}
+                        aria-label={post.data.title}
+                        class="group flex flex-col gap-1 rounded-xl py-3 px-3 transition-colors hover:bg-[var(--btn-plain-bg-hover)] sm:flex-row sm:items-baseline sm:gap-4 sm:py-2.5"
+                >
+                    <span class="shrink-0 sm:w-[5.5rem] font-mono text-[0.875rem] md:text-[0.8125rem] tabular-nums text-30">
+                        {formatYearMonth(post.data.published)}
+                    </span>
+                    <span class="min-w-0 line-clamp-2 sm:line-clamp-none sm:truncate text-[1rem] leading-relaxed md:text-[0.9375rem] text-black/90 dark:text-white/90 transition-colors group-hover:text-[var(--primary)]">
+                        {post.data.title}
+                    </span>
+                    <span class="ml-auto hidden md:block shrink-0 max-w-[12rem] truncate text-[0.8125rem] text-30">
+                        {post.data.tags.map((t) => t.trim()).join(" · ")}
+                    </span>
+                </a>
             {/each}
-            <a href="./" class="inline-flex items-center min-h-8 ml-1 transition-colors hover:text-[var(--primary)]">清除 ×</a>
         </div>
-    {/if}
 
-    {#each filteredPosts as post (post.slug)}
-        <a
-                href={getPostUrlBySlug(post.slug)}
-                aria-label={post.data.title}
-                class="group flex flex-col gap-1 py-3 -mx-2 px-2 rounded-lg transition-colors hover:bg-[var(--btn-plain-bg-hover)] sm:flex-row sm:items-baseline sm:gap-4 sm:py-2.5"
-                style="border-bottom: 0.5px solid var(--border-subtle)"
-        >
-            <span class="shrink-0 sm:w-[5.5rem] font-mono text-[0.875rem] md:text-[0.8125rem] tabular-nums text-30">
-                {formatYearMonth(post.data.published)}
-            </span>
-            <span class="min-w-0 line-clamp-2 sm:line-clamp-none sm:truncate text-[1rem] leading-relaxed md:text-[0.9375rem] text-black/90 dark:text-white/90 transition-colors group-hover:text-[var(--primary)]">
-                {post.data.title}
-            </span>
-            <span class="ml-auto hidden md:block shrink-0 max-w-[12rem] truncate text-[0.8125rem] text-30">
-                {post.data.tags.map((t) => t.trim()).join(" · ")}
-            </span>
-        </a>
-    {/each}
-
-    {#if filteredPosts.length === 0}
-        <div class="py-12 text-center text-[0.9375rem] text-30">该筛选条件下暂无文章</div>
-    {/if}
+        {#if filteredPosts.length === 0}
+            <div class="py-12 text-center text-[0.9375rem] text-30">该筛选条件下暂无文章</div>
+        {/if}
+    </div>
 </div>
