@@ -490,9 +490,7 @@ def suite(page, base, deep, shallow):
     time.sleep(0.6)
     active_color = page.js("(() => { const a=document.querySelector('.toc-item[aria-current=\"location\"]');"
                            "return a ? getComputedStyle(a).color : null; })()")
-    plain_color = page.js("(() => { const a=document.querySelector('.toc-item[aria-current=\"location\"]');"
-                           "const p=[...document.querySelectorAll('.toc-item')].find(el => el !== a);"
-                           "return p ? getComputedStyle(p).color : null; })()")
+    plain_color = page.js("getComputedStyle(document.querySelectorAll('.toc-item')[2]).color")
     check("K2 亮色下高亮项用主色（区别于普通项）",
           active_color is not None and active_color != plain_color, f"{active_color} vs {plain_color}")
     page.shot("08-rail-light.png")

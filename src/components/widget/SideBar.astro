@@ -16,9 +16,7 @@ const hideRecentPosts =
 	pathsEqual(Astro.url.pathname, url("/archive/"));
 ---
 <aside id="sidebar" class:list={[className, "w-full lg:w-[12.5rem]"]}>
-    <!-- 移动端/平板：两列卡片，紧跟正文之后且不 sticky；
-         lg 起：恢复右侧窄栏 + sticky，与阅读栅格对齐。 -->
-    <div id="sidebar-sticky" class="transition-all duration-700 grid grid-cols-1 sm:grid-cols-2 gap-4 w-full lg:flex lg:flex-col lg:gap-5 lg:top-24 lg:sticky">
+    <div id="sidebar-sticky" class="transition-all duration-700 flex flex-col w-full gap-10 top-4 sticky">
         <!-- 分类放最前：这个站就是按三个方向组织的，访客第一眼该看到它 -->
         <Categories class="onload-animation" style="animation-delay: 150ms"></Categories>
         <div id="recent-posts-slot" class:list={[{ hidden: hideRecentPosts }]}>

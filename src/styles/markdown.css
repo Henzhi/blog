@@ -1,7 +1,7 @@
 /* .prose 也是单类选择器，用 .custom-md.prose 双类压住 typography 插件的默认字号 */
 .custom-md.prose {
-    /* 移动根字号为 15px：1.0625rem ≈ 15.9px，中文长文在手机上保持可读不放大。 */
-    font-size: 1.0625rem;
+    /* 移动根字号为 14px：1.1875rem ≈ 16.6px，避免正文随根字号缩到 15.75px。 */
+    font-size: 1.1875rem;
     line-height: 1.8;
 }
 

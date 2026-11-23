@@ -14,32 +14,19 @@ interface Props {
 const { id, name, isCollapsed, collapsedHeight, style } = Astro.props;
 const className = Astro.props.class;
 ---
-<widget-layout data-id={id} data-is-collapsed={String(isCollapsed)} class:list={["sidebar-card block", className]} style={style}>
-    <div class="p-4 sm:p-5">
-        <div class="section-label mb-3">{name}</div>
-        <div id={id} class:list={["collapse-wrapper overflow-hidden", {"collapsed": isCollapsed}]}>
-            <slot></slot>
-        </div>
-        {isCollapsed && <div class="expand-btn mt-1">
-            <button class="flex items-center gap-1 text-[0.8125rem] text-50 transition hover:text-[var(--primary)]">
-                <Icon name="material-symbols:more-horiz" class="text-base"></Icon> {i18n(I18nKey.more)}
-            </button>
-        </div>}
+<widget-layout data-id={id} data-is-collapsed={String(isCollapsed)} class={"block " + className} style={style}>
+    <div class="section-label mb-3">{name}</div>
+    <div id={id} class:list={["collapse-wrapper overflow-hidden", {"collapsed": isCollapsed}]}>
+        <slot></slot>
     </div>
+    {isCollapsed && <div class="expand-btn mt-1">
+        <button class="flex items-center gap-1 text-[0.8125rem] text-50 transition hover:text-[var(--primary)]">
+            <Icon name="material-symbols:more-horiz" class="text-base"></Icon> {i18n(I18nKey.more)}
+        </button>
+    </div>}
 </widget-layout>
 
 <style define:vars={{ collapsedHeight }}>
-    .sidebar-card {
-        border: 1px solid var(--border-subtle);
-        border-radius: var(--radius-lg);
-        background: var(--card-bg);
-        box-shadow: var(--shadow-card);
-        backdrop-filter: blur(16px);
-        transition: box-shadow 300ms, border-color 300ms, transform 300ms var(--ease-out);
-    }
-    .sidebar-card:hover {
-        border-color: var(--link-underline);
-    }
     .collapsed {
         height: var(--collapsedHeight);
     }

@@ -3,11 +3,9 @@
 import "katex/dist/katex.css";
 import { getEntry, render } from "astro:content";
 import Markdown from "@components/misc/Markdown.astro";
-import MainGridLayout from "@layouts/MainGridLayout.astro";
-import { Icon } from "astro-icon/components";
-import { profileConfig } from "../config";
-import { categoryDefs } from "../data/categories";
-import { getCategoryUrl } from "../utils/url-utils";
+import I18nKey from "../i18n/i18nKey";
+import { i18n } from "../i18n/translation";
+import MainGridLayout from "../layouts/MainGridLayout.astro";
 
 const aboutPost = await getEntry("spec", "about");
 
@@ -17,37 +15,10 @@ if (!aboutPost) {
 
 const { Content } = await render(aboutPost);
 ---
-
-<MainGridLayout title="关于" description="关于 Henzhi 与这个个人记录型博客">
-    <div class="max-w-[42rem] mx-auto flex flex-col gap-5 sm:gap-6">
-        <header class="content-card onload-animation">
-            <div class="p-5 sm:p-7">
-                <div class="page-kicker">ABOUT</div>
-                <h1 class="mt-2 text-[length:var(--text-h1)] leading-tight font-semibold tracking-[-0.03em] text-black/90 dark:text-white/95">关于</h1>
-                <p class="mt-3 text-[length:var(--text-body)] leading-[1.8] text-75">
-                    我是 <strong class="text-90">{profileConfig.name}</strong>，坐标北京。这个站点是我的个人记录本——不是简历，也没有选题规划。
-                </p>
-
-                <div class="mt-5 pt-5 border-t border-[var(--border-subtle)] flex flex-wrap items-center gap-2.5">
-                    {categoryDefs.map((category) => (
-                        <a href={getCategoryUrl(category.name)}
-                           class="inline-flex items-center gap-1.5 min-h-9 px-3.5 rounded-full text-[0.8125rem] font-medium text-[var(--primary)] bg-[var(--primary-soft)] hover:-translate-y-0.5 transition">
-                            {category.name}
-                        </a>
-                    ))}
-                    <a href="https://github.com/Henzhi" target="_blank" rel="noopener"
-                       class="inline-flex items-center gap-1.5 min-h-9 px-3.5 rounded-full text-[0.8125rem] font-medium text-75 bg-[var(--card-bg)] border border-[var(--border-subtle)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition">
-                        <Icon name="fa6-brands:github" class="text-base" />
-                        GitHub
-                    </a>
-                </div>
-            </div>
-        </header>
-
-        <div class="content-card onload-animation" style="animation-delay: 80ms">
-            <Markdown class="markdown-content p-5 sm:p-7">
-                <Content />
-            </Markdown>
-        </div>
+<MainGridLayout title={i18n(I18nKey.about)} description={i18n(I18nKey.about)}>
+    <div class="max-w-[42rem] mx-auto pt-2 onload-animation">
+        <Markdown class="markdown-content">
+            <Content />
+        </Markdown>
     </div>
 </MainGridLayout>
