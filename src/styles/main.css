@@ -2,13 +2,15 @@
 
 @layer components {
     .card-base {
-        @apply rounded-[var(--radius-large)] overflow-hidden bg-[var(--card-bg)] transition;
+        @apply rounded-[var(--radius-large)] overflow-hidden bg-[var(--card-bg)] border border-[var(--border-subtle)] transition;
+        box-shadow: var(--shadow-card);
+        backdrop-filter: blur(16px);
     }
     h1, h2, h3, h4, h5, h6, p, a, span, li, ul, ol, blockquote, code, pre, table, th, td, strong {
         @apply transition;
     }
     .card-shadow {
-        @apply drop-shadow-[0_2px_4px_rgba(0,0,0,0.005)]
+        box-shadow: var(--shadow-card);
     }
     .expand-animation {
         @apply relative before:ease-out before:transition active:bg-none hover:before:bg-[var(--btn-plain-bg-hover)] active:before:bg-[var(--btn-plain-bg-active)] z-0
@@ -21,10 +23,12 @@
         @apply transition rounded-md p-1.5 -m-1.5 expand-animation;
     }
     .float-panel {
-        @apply top-[5.25rem] rounded-[var(--radius-large)] overflow-hidden bg-[var(--float-panel-bg)] transition shadow-xl dark:shadow-none
+        @apply top-[5.25rem] rounded-[var(--radius-lg)] overflow-hidden bg-[var(--float-panel-bg)] border border-[var(--border-subtle)] transition shadow-xl;
+        box-shadow: var(--shadow-nav);
+        backdrop-filter: blur(20px);
     }
     .float-panel-closed {
-        @apply -translate-y-1 opacity-0 pointer-events-none
+        @apply -translate-y-2 opacity-0 pointer-events-none
     }
     .search-panel mark {
         @apply bg-transparent text-[var(--primary)]
@@ -39,7 +43,7 @@
     }
     .btn-plain {
         @apply transition relative flex items-center justify-center bg-none
-        text-black/75 hover:text-[var(--primary)] dark:text-white/75 dark:hover:text-[var(--primary)];
+        text-black/70 hover:text-[var(--primary)] dark:text-white/70 dark:hover:text-[var(--primary)];
         &:not(.scale-animation) {
             @apply hover:bg-[var(--btn-plain-bg-hover)] active:bg-[var(--btn-plain-bg-active)]
         }
@@ -52,7 +56,7 @@
     }
     .btn-regular {
         @apply transition flex items-center justify-center bg-[var(--btn-regular-bg)] hover:bg-[var(--btn-regular-bg-hover)] active:bg-[var(--btn-regular-bg-active)]
-        text-[var(--btn-content)] dark:text-white/75
+        text-[var(--btn-content)] dark:text-white/85
     }
 
     .link-underline {
@@ -60,8 +64,6 @@
         hover:decoration-[var(--link-hover)] active:decoration-[var(--link-active)] underline-offset-[0.25rem]
     }
 
-    /* TOC 的定位/尺寸全在 src/components/widget/TOC.astro 内部，
-       这里只留 swup 换页时用的淡入淡出开关 */
     .toc-hide,
     .toc-not-ready {
         @apply opacity-0 pointer-events-none
@@ -75,13 +77,6 @@
         display: none;
     }
 
-    /* 文字色阶 —— 按 WCAG AA（正文 4.5:1）校准。
-       背景取 --page-bg：亮 oklch(0.95 0.008 250) / 暗 oklch(0.145 0.008 250)，
-       括号内为实测对比度，换算脚本见 docs/功能与交互优化清单.md。
-
-       原来 30 / 50 两档只有 2.08:1 和 3.86:1 —— 日期、字数、标签这些 13px
-       元信息在亮色模式下基本读不清。注意 30 与 50 的间距被压缩了，
-       这是「两档都要可读」的必然结果：层级改由字号与位置承担，不再靠透明度硬压。 */
     .text-90 {
         @apply text-black/90 dark:text-white/90
     }
@@ -89,18 +84,43 @@
         @apply text-black/75 dark:text-white/75
     }
     .text-50 {
-        @apply text-black/60 dark:text-white/55
+        @apply text-black/60 dark:text-white/60
     }
     .text-30 {
-        @apply text-black/55 dark:text-white/50
+        @apply text-black/55 dark:text-white/55
     }
 
-    /* 节标题：小号加宽字距标签（joshwcomeau 式分节） */
     .section-label {
         font-size: var(--text-label);
-        font-weight: 500;
-        letter-spacing: 0.12em;
-        @apply text-black/60 dark:text-white/55
+        font-weight: 600;
+        letter-spacing: 0.14em;
+        @apply text-black/55 dark:text-white/55
+    }
+
+    .page-kicker {
+        @apply inline-flex items-center gap-2 text-[0.75rem] font-semibold tracking-[0.16em] text-[var(--primary)];
+    }
+    .page-kicker::before {
+        content: "";
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 999px;
+        background: linear-gradient(135deg, var(--primary), var(--rose));
+        box-shadow: 0 0 0 4px var(--primary-soft);
+    }
+    .content-card {
+        @apply card-base;
+        border-radius: var(--radius-xl);
+    }
+    .page-hero {
+        @apply card-base;
+        border-radius: var(--radius-xl);
+        padding: 1.25rem;
+    }
+    @media (min-width: 640px) {
+        .page-hero {
+            padding: 1.75rem;
+        }
     }
 
     .meta-icon {
@@ -120,6 +140,26 @@
     .btn-regular-dark.success {
         @apply bg-[oklch(0.75_0.14_var(--hue))] dark:bg-[oklch(0.75_0.14_var(--hue))]
     }
+}
+
+html {
+    background: var(--page-bg);
+}
+
+body {
+    font-family: var(--font-sans);
+    background: var(--page-bg);
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 8% 4%, var(--ambient-blue), transparent 32rem),
+        radial-gradient(circle at 92% 16%, var(--ambient-rose), transparent 30rem);
 }
 
 .custom-md img, #post-cover img {
@@ -159,4 +199,20 @@
         color: var(--codeblock-bg);
     }
   }
+}
+
+@media (max-width: 767px) {
+    :root {
+        --text-hero: 2.5rem;
+        --text-h1: 1.875rem;
+        --text-h2: 1.375rem;
+        --text-h3: 1.125rem;
+        --radius-xl: 1.375rem;
+    }
+
+    body::before {
+        background:
+            radial-gradient(circle at 0 0, var(--ambient-blue), transparent 22rem),
+            radial-gradient(circle at 100% 12%, var(--ambient-rose), transparent 20rem);
+    }
 }

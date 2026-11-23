@@ -17,30 +17,35 @@ export const getStaticPaths = (async ({ paginate }) => {
 
 const { page } = Astro.props;
 
-const len = page.data.length;
 const isFirstPage = page.currentPage === 1;
 ---
 
 <MainGridLayout>
-    {isFirstPage && (
+    {isFirstPage ? (
         <Hero></Hero>
 
-        <div class="section-label mb-1 onload-animation" id="latest" style="animation-delay: 150ms">最新文章</div>
+        <section id="latest" class="section-header mt-10 mb-5 flex flex-wrap items-end justify-between gap-4 onload-animation" style="animation-delay: 150ms">
+            <div>
+                <div class="page-kicker">RECENT NOTES</div>
+                <h2 class="mt-2 text-[1.5rem] md:text-[1.75rem] leading-tight font-semibold tracking-[-0.03em] text-90">最新文章</h2>
+            </div>
+            <a href={url('/archive/')}
+               class="inline-flex items-center gap-1 min-h-10 px-4 rounded-full text-[0.875rem] font-medium text-50 bg-[var(--card-bg)] border border-[var(--border-subtle)] transition hover:text-[var(--primary)] hover:border-[var(--primary)] active:scale-[0.98]">
+                全部文章
+                <Icon name="material-symbols:arrow-right-alt-rounded" class="text-lg" />
+            </a>
+        </section>
+    ) : (
+        <header class="page-hero onload-animation mb-6">
+            <div class="page-kicker">ARCHIVE</div>
+            <h1 class="mt-2 text-[length:var(--text-h1)] leading-tight font-semibold tracking-[-0.03em] text-90">文章列表</h1>
+            <p class="mt-2 text-[0.9375rem] text-50 tabular-nums">第 {page.currentPage} 页 / 共 {page.lastPage} 页</p>
+        </header>
     )}
 
     <PostPage page={page}></PostPage>
 
-    {isFirstPage && (
-        <a href={url('/archive/')}
-           class="inline-flex items-center gap-1 mt-2 text-[0.9375rem] text-50 transition-colors hover:text-[var(--primary)] onload-animation"
-           style={`animation-delay: calc(var(--content-delay) + ${len * 50 + 150}ms)`}
-        >
-            全部文章
-            <Icon name="material-symbols:arrow-right-alt-rounded" class="text-lg" />
-        </a>
-    )}
-
     {page.lastPage > 1 && (
-        <Pagination class="mx-auto onload-animation mt-6" page={page} style={`animation-delay: calc(var(--content-delay) + ${(len)*50}ms)`}></Pagination>
+        <Pagination class="mx-auto onload-animation mt-8" page={page} style={`animation-delay: calc(var(--content-delay) + ${page.data.length * 50}ms)`}></Pagination>
     )}
 </MainGridLayout>

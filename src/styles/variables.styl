@@ -9,16 +9,16 @@ rainbow-light = linear-gradient(to right, oklch(0.80 0.10 0), oklch(0.80 0.10 30
 rainbow-dark = linear-gradient(to right, oklch(0.70 0.10 0), oklch(0.70 0.10 30), oklch(0.70 0.10 60), oklch(0.70 0.10 90), oklch(0.70 0.10 120), oklch(0.70 0.10 150), oklch(0.70 0.10 180), oklch(0.70 0.10 210), oklch(0.70 0.10 240), oklch(0.70 0.10 270), oklch(0.70 0.10 300), oklch(0.70 0.10 330), oklch(0.70 0.10 360))
 
 :root
-  --radius-large 0.75rem
+  --radius-large 1.25rem
   --content-delay 150ms
 
   /* 字体系统：Inter（拉丁/数字）+ 系统中文字体，等宽走 JetBrains Mono */
   --font-sans "Inter Variable", "Inter", -apple-system, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif
   --font-mono "JetBrains Mono Variable", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace
 
-  /* 字号阶梯：只有三档字重 400 / 500 / 600 */
-  --text-hero 3rem
-  --text-h1 2rem
+  /* 字号阶梯 */
+  --text-hero 3.25rem
+  --text-h1 2.25rem
   --text-h2 1.5rem
   --text-h3 1.25rem
   --text-body 1.125rem
@@ -31,10 +31,15 @@ rainbow-dark = linear-gradient(to right, oklch(0.70 0.10 0), oklch(0.70 0.10 30)
   --space-block 2rem
   --space-item 1.25rem
 
-  /* 圆角：全局不超过 12px */
-  --radius-sm 4px
-  --radius-md 8px
-  --radius-lg 12px
+  /* 柔和卡片与控件圆角 */
+  --radius-sm 0.5rem
+  --radius-md 0.75rem
+  --radius-lg 1.25rem
+  --radius-xl 1.75rem
+  --shadow-card 0 12px 36px -22px oklch(0.42 0.08 265 / 0.30)
+  --shadow-card-hover 0 22px 48px -24px oklch(0.50 0.14 280 / 0.38)
+  --shadow-nav 0 12px 32px -20px oklch(0.38 0.08 265 / 0.38)
+  --ease-out cubic-bezier(0.16, 1, 0.3, 1)
 
 /* An util to define variables that vary with light and dark mode */
 define(vars)
@@ -47,70 +52,65 @@ define(vars)
         {key}: value[1]
 
 define({
-  /* 强调色收敛：仅用于正文链接与导航当前态，固定 hue 250
-     亮色档从 0.55 降到 0.52：0.55 在浅背景上只有 4.19:1，低于 AA 的 4.5:1。
-     暗色档不变（0.72 在深背景上是 8.01:1）。 */
-  --primary: oklch(0.52 0.15 250) oklch(0.72 0.15 250)
-  --accent-muted: oklch(0.45 0.08 250) oklch(0.45 0.06 250)
-  --page-bg: oklch(0.95 0.008 var(--hue)) oklch(0.145 0.008 var(--hue))
-  --card-bg: white oklch(0.205 0.010 var(--hue))
-  --bg-elevated: oklch(0.97 0.005 var(--hue)) oklch(0.255 0.012 var(--hue))
-  --border-subtle: black(0.09) oklch(0.30 0.010 var(--hue))
+  /* 雾蓝为主、樱粉为辅；彩色只承担识别和交互反馈。 */
+  --primary: oklch(0.53 0.16 268) oklch(0.76 0.14 268)
+  --primary-soft: oklch(0.95 0.035 268) oklch(0.30 0.055 268)
+  --rose: oklch(0.61 0.17 12) oklch(0.74 0.15 12)
+  --rose-soft: oklch(0.95 0.035 12) oklch(0.30 0.05 12)
+  --accent-muted: oklch(0.45 0.08 268) oklch(0.55 0.06 268)
+  --page-bg: oklch(0.975 0.012 268) oklch(0.155 0.022 268)
+  --card-bg: oklch(0.995 0.004 268 / 0.94) oklch(0.215 0.026 268 / 0.94)
+  --card-solid: white oklch(0.215 0.026 268)
+  --bg-elevated: white oklch(0.255 0.025 268)
+  --border-subtle: oklch(0.40 0.06 268 / 0.13) oklch(0.75 0.06 268 / 0.13)
+  --ambient-blue: oklch(0.82 0.10 255 / 0.24) oklch(0.55 0.13 260 / 0.11)
+  --ambient-rose: oklch(0.84 0.10 15 / 0.20) oklch(0.58 0.13 15 / 0.09)
 
-  --btn-content: oklch(0.55 0.12 var(--hue)) oklch(0.75 0.1 var(--hue))
+  --btn-content: oklch(0.50 0.15 268) oklch(0.82 0.11 268)
 
-  --btn-regular-bg: oklch(0.95 0.025 var(--hue)) oklch(0.33 0.035 var(--hue))
-  --btn-regular-bg-hover: oklch(0.9 0.05 var(--hue)) oklch(0.38 0.04 var(--hue))
-  --btn-regular-bg-active: oklch(0.85 0.08 var(--hue)) oklch(0.43 0.045 var(--hue))
+  --btn-regular-bg: oklch(0.94 0.04 268) oklch(0.32 0.055 268)
+  --btn-regular-bg-hover: oklch(0.91 0.065 268) oklch(0.38 0.07 268)
+  --btn-regular-bg-active: oklch(0.87 0.08 268) oklch(0.43 0.075 268)
 
-  --btn-plain-bg-hover: oklch(0.95 0.025 var(--hue)) oklch(0.30 0.035 var(--hue))
-  --btn-plain-bg-active: oklch(0.98 0.01 var(--hue)) oklch(0.27 0.025 var(--hue))
+  --btn-plain-bg-hover: oklch(0.94 0.035 268) oklch(0.30 0.045 268)
+  --btn-plain-bg-active: oklch(0.91 0.05 268) oklch(0.27 0.04 268)
 
-  --btn-card-bg-hover: oklch(0.98 0.005 var(--hue)) oklch(0.3 0.03 var(--hue))
-  --btn-card-bg-active: oklch(0.9 0.03 var(--hue)) oklch(0.35 0.035 var(--hue))
+  --btn-card-bg-hover: oklch(0.97 0.02 268) oklch(0.29 0.04 268)
+  --btn-card-bg-active: oklch(0.93 0.04 268) oklch(0.34 0.05 268)
 
   --enter-btn-bg: var(--btn-regular-bg)
   --enter-btn-bg-hover: var(--btn-regular-bg-hover)
   --enter-btn-bg-active: var(--btn-regular-bg-active)
 
-  --deep-text: oklch(0.25 0.02 var(--hue))
-
-  --title-active: oklch(0.6 0.1 var(--hue))
-
-  --line-divider: black(0.08) white(0.08)
-
-  --line-color: black(0.1) white(0.1)
+  --deep-text: oklch(0.25 0.03 268)
+  --title-active: oklch(0.6 0.1 268)
+  --line-divider: oklch(0.40 0.06 268 / 0.12) oklch(0.75 0.06 268 / 0.12)
+  --line-color: var(--line-divider)
   --meta-divider: black(0.2) white(0.2)
 
   --inline-code-bg: var(--btn-regular-bg)
   --inline-code-color: var(--btn-content)
-  --selection-bg: oklch(0.90 0.05 var(--hue)) oklch(0.40 0.08 var(--hue))
-  --codeblock-selection: oklch(0.40 0.08 var(--hue))
-  --codeblock-bg: oklch(0.17 0.015 var(--hue)) oklch(0.17 0.015 var(--hue))
-  --codeblock-topbar-bg: oklch(0.3 0.02 var(--hue)) oklch(0.12 0.015 var(--hue))
-
-  --license-block-bg: black(0.03) var(--codeblock-bg)
-
-  --link-underline: oklch(0.93 0.04 var(--hue)) oklch(0.40 0.08 var(--hue))
-  --link-hover: oklch(0.95 0.025 var(--hue)) oklch(0.40 0.08 var(--hue))
-  --link-active: oklch(0.90 0.05 var(--hue)) oklch(0.35 0.07 var(--hue))
-
-  --float-panel-bg: white oklch(0.235 0.012 var(--hue))
+  --selection-bg: oklch(0.89 0.07 280) oklch(0.42 0.09 280)
+  --codeblock-selection: oklch(0.40 0.08 268)
+  --codeblock-bg: oklch(0.20 0.025 268) oklch(0.17 0.022 268)
+  --codeblock-topbar-bg: oklch(0.28 0.035 268) oklch(0.13 0.02 268)
+  --license-block-bg: var(--card-bg)
+  --link-underline: oklch(0.84 0.08 268) oklch(0.52 0.10 268)
+  --link-hover: oklch(0.93 0.045 268) oklch(0.40 0.08 268)
+  --link-active: oklch(0.89 0.06 268) oklch(0.35 0.07 268)
+  --float-panel-bg: oklch(0.995 0.004 268 / 0.98) oklch(0.235 0.025 268 / 0.98)
 
   --scrollbar-bg-light: black(0.4)
   --scrollbar-bg-hover-light: black(0.5)
   --scrollbar-bg-active-light: black(0.6)
-
   --scrollbar-bg-dark: white(0.4)
   --scrollbar-bg-hover-dark: white(0.5)
   --scrollbar-bg-active-dark: white(0.6)
-
   --scrollbar-bg: var(--scrollbar-bg-light) var(--scrollbar-bg-dark)
   --scrollbar-bg-hover: var(--scrollbar-bg-hover-light) var(--scrollbar-bg-hover-dark)
   --scrollbar-bg-active: var(--scrollbar-bg-active-light) var(--scrollbar-bg-active-dark)
 
   --color-selection-bar: rainbow-light rainbow-dark
-
   --display-light-icon: 1 0
   --display-dark-icon: 0 1
 
@@ -120,6 +120,5 @@ define({
   --admonitions-color-warning: oklch(0.7 0.14 60) oklch(0.75 0.14 60)
   --admonitions-color-caution: oklch(0.6 0.2 25) oklch(0.65 0.2 25)
 
-  /* 目录（TOC，左侧可折叠）：条目 hover 底色；尺寸/配色都在 TOC.astro 内部定义 */
-  --toc-btn-hover: oklch(0.926 0.015 var(--hue)) oklch(0.22 0.02 var(--hue))
+  --toc-btn-hover: oklch(0.93 0.03 268) oklch(0.25 0.035 268)
 })

@@ -280,7 +280,7 @@ $: if (initialized && keywordMobile !== undefined) {
 </script>
 
 <!-- search bar for desktop view -->
-<div id="search-bar" class="hidden lg:flex transition-all items-center h-11 mr-2 rounded-lg
+<div id="search-bar" class="hidden lg:flex transition-all items-center h-10 mr-2 rounded-full
       bg-black/[0.04] hover:bg-black/[0.06] focus-within:bg-black/[0.06]
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
 ">
@@ -300,7 +300,7 @@ $: if (initialized && keywordMobile !== undefined) {
 <button on:click={() => (isPanelOpen() ? closeSearch() : openSearch())}
         aria-label="打开搜索" aria-controls="search-panel" aria-expanded="false"
         id="search-switch"
-        class="btn-plain scale-animation lg:!hidden rounded-lg w-11 h-11 active:scale-90">
+        class="btn-plain scale-animation lg:!hidden rounded-full w-10 h-10 active:scale-90">
     <Icon icon={localIcons["material-symbols:search"]} class="text-[1.25rem]"></Icon>
 </button>
 
